@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+
+# Dados (baixados do Kaggle / gerados pelo pipeline)
+#data/raw/*
+#!data/raw/.gitkeep
+#data/processed/*
+#!data/processed/.gitkeep
+
+# Credenciais
+.env
+*.env.local
+kaggle.json
+aws/credentials
+
+# dbt
+dbt/amazon_pipeline/target/
+dbt/amazon_pipeline/dbt_packages/
+dbt/amazon_pipeline/logs/
+dbt/amazon_pipeline/profiles.yml
+
+# Terraform
+terraform/.terraform/
+terraform/terraform.tfstate*
+terraform/terraform.tfvars
+terraform/*.tfplan
+terraform/crash.log
+
+# Airflow
+airflow/logs/
+airflow/plugins/__pycache__/
+airflow-logs/
+
+# Saídas de ML
+machine-learning/output/*
+!machine-learning/output/.gitkeep
+machine-learning/artifacts/*
+!machine-learning/artifacts/.gitkeep
+
+# SO / editores
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

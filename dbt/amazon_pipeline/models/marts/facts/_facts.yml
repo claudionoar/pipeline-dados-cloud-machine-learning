@@ -1,0 +1,36 @@
+version: 2
+
+models:
+  - name: fact_review
+    description: "Um registro por review de texto (grão: review_id), com FK para dim_product."
+    columns:
+      - name: review_key
+        tests:
+          - not_null
+          - unique
+      - name: sentiment_label
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['positive', 'neutral', 'negative']
+      - name: product_key
+        tests:
+          - relationships:
+              arguments:
+                to: ref('dim_product')
+                field: product_key
+              config:
+                severity: warn
+                # warn (não error): parte dos reviews não tem correspondência no catálogo de
+                # produtos, pois vêm de um dataset de reviews independente - ver docs/dicionario_dados.md
+
+  - name: fact_sales
+    description: "Um registro por produto (grão: product_id), com métricas de preço/rating para o mart de dashboard."
+    columns:
+      - name: product_key
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_product')
+                field: product_key
