@@ -41,13 +41,17 @@ SALES_ALIASES = {
 SALES_REQUIRED = ["product_id", "product_name", "rating"]
 
 REVIEWS_ALIASES = {
-    "review_id": ["review_id", "id"],
-    "product_id": ["product_id", "asin", "productid"],
-    "user_id": ["user_id", "userid", "reviewerid", "reviewer_id"],
-    "review_title": ["review_title", "summary", "title"],
-    "review_text": ["review_text", "review_content", "reviewtext", "text"],
-    "rating": ["rating", "overall", "score", "stars"],
-    "review_date": ["review_date", "time", "reviewtime", "unixreviewtime"],
+    # "id" NAO entra aqui: em datasets estilo Datafiniti (amazon-product-reviews-dataset) a
+    # coluna "id" identifica o PRODUTO, nao a review - varias linhas (reviews) repetem o
+    # mesmo "id". Sem alias correspondente, review_id fica NaN e cai no fallback "gen-{i}"
+    # (sequencial, garantidamente unico) mais abaixo em process_reviews().
+    "review_id": ["review_id"],
+    "product_id": ["product_id", "asin", "productid", "asins"],
+    "user_id": ["user_id", "userid", "reviewerid", "reviewer_id", "reviews.username"],
+    "review_title": ["review_title", "summary", "title", "reviews.title"],
+    "review_text": ["review_text", "review_content", "reviewtext", "text", "reviews.text"],
+    "rating": ["rating", "overall", "score", "stars", "reviews.rating"],
+    "review_date": ["review_date", "time", "reviewtime", "unixreviewtime", "reviews.date"],
 }
 REVIEWS_REQUIRED = ["review_text", "rating"]
 

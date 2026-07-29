@@ -86,9 +86,17 @@ para o esquema de cada tabela/arquivo.
 ## Segurança básica
 
 - Bucket S3 privado (Block Public Access), versionado e criptografado (SSE-S3).
-- Snowflake acessa o S3 via **Storage Integration** (IAM Role com trust policy restrita à
-  conta Snowflake) em vez de chaves de acesso estáticas.
 - Credenciais (AWS, Snowflake, Kaggle) só existem em `.env` (fora do controle de versão) e
   como variáveis de ambiente dentro dos containers.
+- **Limitação operacional identificada durante a execução real** (item 9 dos objetivos de
+  Cloud Computing): o design original previa Snowflake acessando o S3 via **Storage
+  Integration** (IAM Role assumida via `sts:AssumeRole`, sem nenhuma chave estática dentro do
+  Snowflake). Na prática, a conta AWS usada (AWS Academy Learner Lab) bloqueia `iam:CreateRole`
+  para o aluno, então não é possível criar essa IAM Role. Alternativa adotada: o stage do
+  Snowflake usa `CREATE STAGE ... CREDENTIALS = (AWS_KEY_ID=... AWS_SECRET_KEY=... AWS_TOKEN=...)`
+  com as mesmas credenciais temporárias do `.env` — solução oficialmente suportada pela
+  Snowflake, com o trade-off de precisar ser recriada quando a sessão do laboratório expira
+  (poucas horas). Em uma conta AWS sem essa restrição, o caminho original com Storage
+  Integration volta a ser a opção recomendada (ver `snowflake/README.md`).
 - No template 100% AWS, os serviços (Glue, SageMaker) usam IAM Roles com permissão mínima
   (apenas leitura/escrita no bucket do projeto).

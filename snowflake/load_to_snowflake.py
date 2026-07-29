@@ -60,10 +60,20 @@ def _connect():
     )
 
 
+def _strip_comment_lines(sql_text: str) -> str:
+    # Remove linhas de comentario ANTES de dividir por ";" - se so filtrarmos por statement
+    # depois do split, um comentario na mesma linha/bloco do primeiro comando real faz o
+    # bloco inteiro (comentario + comando) ser descartado, ja que ele COMECA com "--".
+    return "\n".join(
+        line for line in sql_text.splitlines() if not line.strip().startswith("--")
+    )
+
+
 def run_step(conn, step: str) -> None:
     filename = STEP_FILES[step]
-    sql_text = _render((SQL_DIR / filename).read_text(encoding="utf-8"))
-    statements = [s.strip() for s in sql_text.split(";") if s.strip() and not s.strip().startswith("--")]
+    raw_text = (SQL_DIR / filename).read_text(encoding="utf-8")
+    sql_text = _render(_strip_comment_lines(raw_text))
+    statements = [s.strip() for s in sql_text.split(";") if s.strip()]
     with conn.cursor() as cur:
         for statement in statements:
             print(f"[{step}] {statement.splitlines()[0][:90]}...")

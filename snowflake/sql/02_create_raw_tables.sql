@@ -3,11 +3,12 @@
 USE DATABASE ${SNOWFLAKE_DATABASE};
 USE SCHEMA RAW;
 
+-- Ordem das colunas precisa bater exatamente com a ordem de saida de s3/processing.py
+-- (COPY INTO sem MATCH_BY_COLUMN_NAME mapeia por posicao, nao por nome).
 CREATE TABLE IF NOT EXISTS SALES (
     product_id           VARCHAR,
     product_name         VARCHAR,
     category             VARCHAR,
-    category_root        VARCHAR,
     discounted_price      FLOAT,
     actual_price          FLOAT,
     discount_percentage   FLOAT,
@@ -16,6 +17,7 @@ CREATE TABLE IF NOT EXISTS SALES (
     about_product         VARCHAR,
     img_link              VARCHAR,
     product_link          VARCHAR,
+    category_root        VARCHAR,
     ingested_at            TIMESTAMP_TZ
 )
 COMMENT = 'Catalogo de produtos (dados estruturados) - carregado via COPY INTO da camada silver';

@@ -1,19 +1,17 @@
--- Storage integration + external stage apontando para a camada "silver" do bucket S3.
--- Depois de rodar o CREATE STORAGE INTEGRATION, rode:
---     DESC INTEGRATION ${SNOWFLAKE_STORAGE_INTEGRATION};
--- e copie STORAGE_AWS_IAM_USER_ARN / STORAGE_AWS_EXTERNAL_ID para o trust policy da IAM Role
--- referenciada em STORAGE_AWS_ROLE_ARN (documentação: docs/dicionario_dados.md e
--- https://docs.snowflake.com/en/user-guide/data-load-s3-config-storage-integration).
+-- External stage apontando para a camada "silver" do bucket S3.
+--
+-- Usa CREDENTIALS diretas (AWS_KEY_ID/AWS_SECRET_KEY/AWS_TOKEN) em vez de STORAGE INTEGRATION:
+-- storage integration exige criar uma IAM Role na AWS (iam:CreateRole), permissão que contas
+-- de laboratório (ex.: AWS Academy Learner Lab) tipicamente bloqueiam para o aluno. Com
+-- credenciais temporarias de sessao (AWS_SESSION_TOKEN preenchido no .env), o AWS_TOKEN abaixo
+-- e obrigatorio; se um dia trocar para um usuario IAM permanente (sem sessao temporaria),
+-- remova a linha AWS_TOKEN. Ver docs/arquitetura.md para a limitacao documentada.
+--
+-- Efeito colateral: como as credenciais do lab expiram (poucas horas), este stage para de
+-- funcionar quando elas vencem - rode este step de novo (com o .env atualizado) para renovar.
 
 USE DATABASE ${SNOWFLAKE_DATABASE};
 USE SCHEMA RAW;
-
-CREATE STORAGE INTEGRATION IF NOT EXISTS ${SNOWFLAKE_STORAGE_INTEGRATION}
-    TYPE = EXTERNAL_STAGE
-    STORAGE_PROVIDER = 'S3'
-    ENABLED = TRUE
-    STORAGE_AWS_ROLE_ARN = '${SNOWFLAKE_S3_ROLE_ARN}'
-    STORAGE_ALLOWED_LOCATIONS = ('s3://${AWS_S3_BUCKET}/silver/');
 
 CREATE FILE FORMAT IF NOT EXISTS CSV_STANDARD
     TYPE = 'CSV'
@@ -23,8 +21,8 @@ CREATE FILE FORMAT IF NOT EXISTS CSV_STANDARD
     NULL_IF = ('', 'NULL', 'NaN')
     EMPTY_FIELD_AS_NULL = TRUE;
 
-CREATE STAGE IF NOT EXISTS SILVER_STAGE
-    STORAGE_INTEGRATION = ${SNOWFLAKE_STORAGE_INTEGRATION}
+CREATE OR REPLACE STAGE SILVER_STAGE
     URL = 's3://${AWS_S3_BUCKET}/silver/'
+    CREDENTIALS = (AWS_KEY_ID = '${AWS_ACCESS_KEY_ID}' AWS_SECRET_KEY = '${AWS_SECRET_ACCESS_KEY}' AWS_TOKEN = '${AWS_SESSION_TOKEN}')
     FILE_FORMAT = CSV_STANDARD
-    COMMENT = 'Aponta para a camada silver (dados normalizados) do bucket S3';
+    COMMENT = 'Aponta para a camada silver (dados normalizados) do bucket S3 - credenciais temporarias, renovar quando expirar';

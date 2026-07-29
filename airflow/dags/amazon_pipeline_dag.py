@@ -67,12 +67,22 @@ with DAG(
         bash_command=f"python {PROJECT_DIR}/s3/upload_to_s3.py --layer silver",
     )
 
+    # "grants" fica de fora por padrão: só é necessário quando a role que carrega os dados é
+    # diferente da role usada pelo dbt/consumidores. Aqui é a mesma role (mesmas credenciais do
+    # .env) - ela já é dona dos objetos que cria, não precisa se auto-conceder nada. Em contas
+    # de laboratório/classroom (ex.: role sem MANAGE GRANTS), rodar "grants" falha - ver
+    # snowflake/README.md.
     load_snowflake_raw = BashOperator(
         task_id="load_snowflake_raw",
         bash_command=(
             f"python {PROJECT_DIR}/snowflake/load_to_snowflake.py "
-            "--steps setup,stage,tables,grants,copy"
+            "--steps setup,stage,tables,copy"
         ),
+    )
+
+    dbt_deps = BashOperator(
+        task_id="dbt_deps",
+        bash_command=f"{DBT_BIN} deps --project-dir {DBT_PROJECT_DIR}",
     )
 
     dbt_run = BashOperator(
@@ -116,5 +126,5 @@ with DAG(
     check_s3_bucket >> [upload_bronze, process_data]
     process_data >> upload_silver
     [upload_bronze, upload_silver] >> load_snowflake_raw
-    load_snowflake_raw >> dbt_run >> dbt_test >> train_ml_models
+    load_snowflake_raw >> dbt_deps >> dbt_run >> dbt_test >> train_ml_models
     train_ml_models >> upload_predictions >> load_predictions_snowflake >> dbt_run_ml_results

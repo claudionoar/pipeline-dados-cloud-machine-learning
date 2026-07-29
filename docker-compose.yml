@@ -8,6 +8,10 @@ x-airflow-common: &airflow-common
     AIRFLOW__CORE__EXECUTOR: LocalExecutor
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-postgres/airflow
     AIRFLOW__CORE__FERNET_KEY: ${AIRFLOW__CORE__FERNET_KEY:-}
+    # Precisa ser IDÊNTICA em todos os componentes (webserver/scheduler) - é o que o
+    # webserver usa para autenticar a busca de logs no scheduler (porta 8793). Se não for
+    # fixada aqui, cada container gera uma aleatória e a UI retorna 403 ao abrir logs.
+    AIRFLOW__WEBSERVER__SECRET_KEY: ${AIRFLOW__WEBSERVER__SECRET_KEY:-}
     AIRFLOW__CORE__DAGS_FOLDER: /opt/airflow/project/airflow/dags
     AIRFLOW__CORE__LOAD_EXAMPLES: "false"
     AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}

@@ -52,5 +52,8 @@ que é a forma "oficial" e reprodutível de rodar o pipeline (ver `README.md` na
 - Bucket privado (Block Public Access habilitado) — nenhum dado exposto publicamente.
 - Credenciais AWS nunca hardcoded: sempre lidas de variáveis de ambiente (`.env`, carregado via
   `python-dotenv` ou pelas envs do container do Airflow).
-- Acesso do Snowflake ao bucket é feito via **Storage Integration** (IAM Role com trust policy
-  restrita à conta Snowflake), não via chaves de acesso estáticas — ver `snowflake/README.md`.
+- Acesso do Snowflake ao bucket usa as mesmas credenciais AWS do `.env` (nunca hardcoded no
+  SQL) — idealmente seria via Storage Integration (IAM Role, sem chave nenhuma dentro do
+  Snowflake), mas isso exige permissão para criar IAM Role na conta AWS, que ambientes de
+  laboratório (ex.: AWS Academy Learner Lab) bloqueiam para o aluno. Ver `snowflake/README.md`
+  para os dois caminhos e a limitação documentada.
