@@ -11,6 +11,7 @@ Classificação de sentimento de reviews de produtos Amazon (positive/neutral/ne
 apoiar um gestor de categoria a priorizar produtos com reputação em queda. Detalhes em
 [`docs/problema.md`](docs/problema.md).
 
+
 ## Arquitetura
 
 ```
