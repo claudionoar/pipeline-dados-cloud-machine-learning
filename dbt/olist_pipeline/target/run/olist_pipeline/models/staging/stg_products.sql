@@ -1,10 +1,7 @@
 
   create or replace   view PROJETO_OLIST_DB.ANALYTICS.stg_products
   
-  
-  
-  
-  as (
+   as (
     with source as (
     select * from PROJETO_OLIST_DB.RAW.products
 )

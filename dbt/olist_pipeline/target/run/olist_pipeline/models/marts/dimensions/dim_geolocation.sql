@@ -2,14 +2,9 @@
   
     
 
-create or replace transient table PROJETO_OLIST_DB.ANALYTICS.dim_geolocation
-    
-    
-    
-    
-    
-
-    as (-- Agrega a granularidade original de raw.geolocation (várias lat/lng por prefixo de CEP,
+        create or replace transient table PROJETO_OLIST_DB.ANALYTICS.dim_geolocation
+         as
+        (-- Agrega a granularidade original de raw.geolocation (várias lat/lng por prefixo de CEP,
 -- vindas de GPS de usuários distintos) para uma linha por zip_code_prefix - grão necessário
 -- para servir de dimensão de localização de clientes/vendedores em mart_late_delivery_features.
 
@@ -25,8 +20,6 @@ select
     mode(state) as state
 from geolocation
 group by zip_code_prefix
-    )
-;
-
-
+        );
+      
   

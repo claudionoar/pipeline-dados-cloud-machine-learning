@@ -2,14 +2,9 @@
   
     
 
-create or replace transient table PROJETO_OLIST_DB.ANALYTICS.fact_order_items
-    
-    
-    
-    
-    
-
-    as (with order_items as (
+        create or replace transient table PROJETO_OLIST_DB.ANALYTICS.fact_order_items
+         as
+        (with order_items as (
     select * from PROJETO_OLIST_DB.ANALYTICS.stg_order_items
 ),
 
@@ -34,8 +29,6 @@ select
 from order_items
 left join products on order_items.product_id = products.product_id
 left join sellers on order_items.seller_id = sellers.seller_id
-    )
-;
-
-
+        );
+      
   

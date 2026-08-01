@@ -2,14 +2,9 @@
   
     
 
-create or replace transient table PROJETO_OLIST_DB.ANALYTICS.mart_delivery_kpis
-    
-    
-    
-    
-    
-
-    as (-- Fatos agregados para o dashboard Metabase: % de pedidos atrasados e tempo médio de entrega
+        create or replace transient table PROJETO_OLIST_DB.ANALYTICS.mart_delivery_kpis
+         as
+        (-- Fatos agregados para o dashboard Metabase: % de pedidos atrasados e tempo médio de entrega
 -- por estado do cliente - a mesma pergunta de negócio que orienta mart_late_delivery_features,
 -- em formato pronto para visualização (ex.: priorizar intervenção logística por região).
 
@@ -34,8 +29,6 @@ where orders.order_status = 'delivered'
     and orders.order_delivered_customer_date is not null
     and orders.order_estimated_delivery_date is not null
 group by customers.state
-    )
-;
-
-
+        );
+      
   

@@ -2,14 +2,9 @@
   
     
 
-create or replace transient table PROJETO_OLIST_DB.ANALYTICS.dim_customers
-    
-    
-    
-    
-    
-
-    as (with customers as (
+        create or replace transient table PROJETO_OLIST_DB.ANALYTICS.dim_customers
+         as
+        (with customers as (
     select * from PROJETO_OLIST_DB.ANALYTICS.stg_customers
 )
 
@@ -21,8 +16,6 @@ select
     customer_city as city,
     customer_state as state
 from customers
-    )
-;
-
-
+        );
+      
   

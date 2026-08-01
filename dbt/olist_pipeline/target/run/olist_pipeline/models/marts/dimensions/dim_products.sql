@@ -2,14 +2,9 @@
   
     
 
-create or replace transient table PROJETO_OLIST_DB.ANALYTICS.dim_products
-    
-    
-    
-    
-    
-
-    as (with products as (
+        create or replace transient table PROJETO_OLIST_DB.ANALYTICS.dim_products
+         as
+        (with products as (
     select * from PROJETO_OLIST_DB.ANALYTICS.stg_products
 ),
 
@@ -35,8 +30,6 @@ select
 from products
 left join category_translation
     on products.product_category_name = category_translation.product_category_name
-    )
-;
-
-
+        );
+      
   

@@ -2,14 +2,9 @@
   
     
 
-create or replace transient table PROJETO_OLIST_DB.ANALYTICS.dim_sellers
-    
-    
-    
-    
-    
-
-    as (with sellers as (
+        create or replace transient table PROJETO_OLIST_DB.ANALYTICS.dim_sellers
+         as
+        (with sellers as (
     select * from PROJETO_OLIST_DB.ANALYTICS.stg_sellers
 )
 
@@ -20,8 +15,6 @@ select
     city,
     state
 from sellers
-    )
-;
-
-
+        );
+      
   

@@ -2,14 +2,9 @@
   
     
 
-create or replace transient table PROJETO_OLIST_DB.ANALYTICS.fact_payments
-    
-    
-    
-    
-    
-
-    as (with payments as (
+        create or replace transient table PROJETO_OLIST_DB.ANALYTICS.fact_payments
+         as
+        (with payments as (
     select * from PROJETO_OLIST_DB.ANALYTICS.stg_order_payments
 )
 
@@ -21,8 +16,6 @@ select
     payment_installments,
     payment_value
 from payments
-    )
-;
-
-
+        );
+      
   

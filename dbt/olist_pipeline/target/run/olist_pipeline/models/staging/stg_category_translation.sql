@@ -1,10 +1,7 @@
 
   create or replace   view PROJETO_OLIST_DB.ANALYTICS.stg_category_translation
   
-  
-  
-  
-  as (
+   as (
     with source as (
     select * from PROJETO_OLIST_DB.RAW.category_translation
 )

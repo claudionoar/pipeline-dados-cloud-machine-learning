@@ -2,14 +2,9 @@
   
     
 
-create or replace transient table PROJETO_OLIST_DB.ANALYTICS.mart_ml_results
-    
-    
-    
-    
-    
-
-    as (-- Predições do conjunto de teste (hard-code vs. sklearn) prontas para o dashboard e para a
+        create or replace transient table PROJETO_OLIST_DB.ANALYTICS.mart_ml_results
+         as
+        (-- Predições do conjunto de teste (hard-code vs. sklearn) prontas para o dashboard e para a
 -- análise de acertos/erros pedida na avaliação qualitativa (docs/avaliacao.md).
 
 with predictions as (
@@ -37,8 +32,6 @@ select
 from predictions
 left join orders on predictions.order_id = orders.order_id
 left join customers on orders.customer_key = customers.customer_key
-    )
-;
-
-
+        );
+      
   

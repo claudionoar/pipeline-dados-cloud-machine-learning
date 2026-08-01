@@ -2,14 +2,9 @@
   
     
 
-create or replace transient table PROJETO_OLIST_DB.ANALYTICS.mart_sentiment_kpis
-    
-    
-    
-    
-    
-
-    as (-- Fatos agregados para o dashboard Metabase: indicadores de sentimento por categoria de
+        create or replace transient table PROJETO_OLIST_DB.ANALYTICS.mart_sentiment_kpis
+         as
+        (-- Fatos agregados para o dashboard Metabase: indicadores de sentimento por categoria de
 -- produto. Cada review está ligada a um pedido (não diretamente a um produto); usa-se o
 -- produto do primeiro item do pedido para evitar duplicar a review entre categorias em
 -- pedidos com vários itens de categorias diferentes (mesma simplificação documentada em
@@ -43,8 +38,6 @@ from reviews
 left join primary_item on reviews.order_id = primary_item.order_id
 left join products on primary_item.product_key = products.product_key
 group by products.category_name_english
-    )
-;
-
-
+        );
+      
   

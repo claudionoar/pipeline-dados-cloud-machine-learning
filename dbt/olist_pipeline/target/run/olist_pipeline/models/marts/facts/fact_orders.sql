@@ -2,14 +2,9 @@
   
     
 
-create or replace transient table PROJETO_OLIST_DB.ANALYTICS.fact_orders
-    
-    
-    
-    
-    
-
-    as (with orders as (
+        create or replace transient table PROJETO_OLIST_DB.ANALYTICS.fact_orders
+         as
+        (with orders as (
     select * from PROJETO_OLIST_DB.ANALYTICS.stg_orders
 ),
 
@@ -40,8 +35,6 @@ select
         as approval_delay_hours
 from orders
 left join customers on orders.customer_id = customers.customer_id
-    )
-;
-
-
+        );
+      
   

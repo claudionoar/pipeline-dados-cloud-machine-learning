@@ -1,10 +1,7 @@
 
   create or replace   view PROJETO_OLIST_DB.ANALYTICS.stg_order_reviews
   
-  
-  
-  
-  as (
+   as (
     with source as (
     select * from PROJETO_OLIST_DB.RAW.order_reviews
 )

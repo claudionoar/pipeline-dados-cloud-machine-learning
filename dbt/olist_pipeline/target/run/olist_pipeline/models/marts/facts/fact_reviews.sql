@@ -2,14 +2,9 @@
   
     
 
-create or replace transient table PROJETO_OLIST_DB.ANALYTICS.fact_reviews
-    
-    
-    
-    
-    
-
-    as (with reviews as (
+        create or replace transient table PROJETO_OLIST_DB.ANALYTICS.fact_reviews
+         as
+        (with reviews as (
     select * from PROJETO_OLIST_DB.ANALYTICS.stg_order_reviews
 ),
 
@@ -32,8 +27,6 @@ select
     reviews.review_answer_timestamp
 from reviews
 left join orders on reviews.order_id = orders.order_id
-    )
-;
-
-
+        );
+      
   

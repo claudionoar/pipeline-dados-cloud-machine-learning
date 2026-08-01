@@ -2,14 +2,9 @@
   
     
 
-create or replace transient table PROJETO_OLIST_DB.ANALYTICS.mart_late_delivery_features
-    
-    
-    
-    
-    
-
-    as (-- Tabela final para consumo pelo módulo de Machine Learning (machine-learning/data_prep.py):
+        create or replace transient table PROJETO_OLIST_DB.ANALYTICS.mart_late_delivery_features
+         as
+        (-- Tabela final para consumo pelo módulo de Machine Learning (machine-learning/data_prep.py):
 -- uma linha por pedido entregue, com features estruturadas + o alvo is_late (atraso na entrega).
 --
 -- distance_km usa a função nativa HAVERSINE() do Snowflake entre o centróide de CEP do cliente
@@ -119,8 +114,6 @@ left join customer_geo on orders.customer_key = customer_geo.customer_key
 where orders.order_status = 'delivered'
     and orders.order_delivered_customer_date is not null
     and orders.order_estimated_delivery_date is not null
-    )
-;
-
-
+        );
+      
   
