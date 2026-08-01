@@ -18,10 +18,10 @@ kaggle.json
 aws/credentials
 
 # dbt
-dbt/amazon_pipeline/target/
-dbt/amazon_pipeline/dbt_packages/
-dbt/amazon_pipeline/logs/
-dbt/amazon_pipeline/profiles.yml
+dbt/olist_pipeline/target/
+dbt/olist_pipeline/dbt_packages/
+dbt/olist_pipeline/logs/
+dbt/olist_pipeline/profiles.yml
 
 # Terraform
 terraform/.terraform/
