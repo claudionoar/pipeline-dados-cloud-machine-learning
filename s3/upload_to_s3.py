@@ -21,6 +21,22 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 BUCKET = os.environ.get("AWS_S3_BUCKET")
 REGION = os.environ.get("AWS_DEFAULT_REGION", "us-east-1")
 
+# Uma tabela do dataset Olist por arquivo (ver s3/processing.py) - mesmo nome em bronze e silver.
+TABLES = ["customers", "geolocation", "orders", "order_items", "order_payments",
+          "order_reviews", "products", "sellers", "category_translation"]
+
+RAW_FILENAMES = {
+    "customers": "olist_customers_dataset.csv",
+    "geolocation": "olist_geolocation_dataset.csv",
+    "orders": "olist_orders_dataset.csv",
+    "order_items": "olist_order_items_dataset.csv",
+    "order_payments": "olist_order_payments_dataset.csv",
+    "order_reviews": "olist_order_reviews_dataset.csv",
+    "products": "olist_products_dataset.csv",
+    "sellers": "olist_sellers_dataset.csv",
+    "category_translation": "product_category_name_translation.csv",
+}
+
 
 def _s3_client():
     if not BUCKET:
@@ -35,29 +51,32 @@ def _partition(prefix: str) -> str:
 def upload_bronze(raw_dir: Path = PROJECT_ROOT / "data" / "raw") -> list[str]:
     client = _s3_client()
     uploaded = []
-    mapping = {"sales": "amazon_sales", "reviews": "amazon_reviews"}
-    for csv_path in sorted(raw_dir.glob("*.csv")):
-        subfolder = "amazon_sales" if "sale" in csv_path.stem.lower() else "amazon_reviews"
-        key = f"{_partition('bronze/' + subfolder)}/{csv_path.name}"
-        client.upload_file(str(csv_path), BUCKET, key)
+    for table, filename in RAW_FILENAMES.items():
+        path = raw_dir / filename
+        if not path.exists():
+            print(f"[bronze] aviso: {path} não encontrado, pulando")
+            continue
+        key = f"{_partition('bronze/' + table)}/{path.name}"
+        client.upload_file(str(path), BUCKET, key)
         uploaded.append(key)
         print(f"bronze: s3://{BUCKET}/{key}")
     return uploaded
 
 
 def upload_silver(processed_dir: Path = PROJECT_ROOT / "data" / "processed") -> list[str]:
-    # Sem partição por dt=: RAW.SALES/RAW.REVIEWS no Snowflake sao truncadas e recarregadas por
-    # inteiro a cada execucao (ver 03_copy_into.sql), entao o silver representa so o snapshot
-    # mais recente. Particionar por data aqui deixava pastas dt= antigas paradas no bucket, e o
-    # COPY INTO (que varre @SILVER_STAGE/sales/ inteiro) carregava todas juntas, duplicando cada
+    # Sem partição por dt=: as tabelas RAW no Snowflake sao truncadas e recarregadas por inteiro
+    # a cada execucao (ver 03_copy_into.sql), entao o silver representa so o snapshot mais
+    # recente. Particionar por data aqui deixava pastas dt= antigas paradas no bucket, e o COPY
+    # INTO (que varre @SILVER_STAGE/<tabela>/ inteiro) carregava todas juntas, duplicando cada
     # linha uma vez por dia em que o pipeline ja rodou.
     client = _s3_client()
     uploaded = []
-    for name in ["sales.csv", "reviews.csv"]:
-        path = processed_dir / name
+    for table in TABLES:
+        path = processed_dir / f"{table}.csv"
         if not path.exists():
+            print(f"[silver] aviso: {path} não encontrado, pulando")
             continue
-        key = f"silver/{path.stem}/{path.name}"
+        key = f"silver/{table}/{path.name}"
         client.upload_file(str(path), BUCKET, key)
         uploaded.append(key)
         print(f"silver: s3://{BUCKET}/{key}")

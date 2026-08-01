@@ -1,4 +1,5 @@
-"""Métricas de avaliação e baseline para a tarefa de classificação de sentimento."""
+"""Métricas de avaliação e baseline - agnóstico à tarefa (funciona tanto para os rótulos atuais
+["on_time", "late"] quanto para qualquer outra classificação)."""
 from __future__ import annotations
 
 import json

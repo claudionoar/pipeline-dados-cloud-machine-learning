@@ -29,7 +29,7 @@ com a justificativa de onde encaixariam.
 ```bash
 aws cloudformation deploy \
   --template-file cloudformation/template.yaml \
-  --stack-name amazon-pipeline \
+  --stack-name olist-pipeline \
   --parameter-overrides \
       BucketSuffix=<seu-sufixo-unico> \
       EnableRedshift=false \

@@ -6,7 +6,7 @@ CREATE WAREHOUSE IF NOT EXISTS ${SNOWFLAKE_WAREHOUSE}
     AUTO_SUSPEND = 60
     AUTO_RESUME = TRUE
     INITIALLY_SUSPENDED = TRUE
-    COMMENT = 'Warehouse do projeto final - pipeline Amazon Sales & Reviews';
+    COMMENT = 'Warehouse do projeto final - pipeline Olist Brazilian E-Commerce';
 
 CREATE DATABASE IF NOT EXISTS ${SNOWFLAKE_DATABASE}
     COMMENT = 'Base analitica do projeto final integrado (Modelagem de Dados / ML / Cloud)';

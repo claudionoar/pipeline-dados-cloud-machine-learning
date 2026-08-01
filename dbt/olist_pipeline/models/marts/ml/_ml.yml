@@ -1,0 +1,13 @@
+version: 2
+
+models:
+  - name: mart_late_delivery_features
+    description: "Base de treino/inferência do módulo machine-learning/: uma linha por pedido entregue (delivered, com as duas datas presentes), com features estruturadas e o alvo is_late."
+    columns:
+      - name: order_id
+        tests:
+          - not_null
+          - unique
+      - name: is_late
+        tests:
+          - not_null

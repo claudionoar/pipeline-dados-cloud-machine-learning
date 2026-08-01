@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: >
-  Arquitetura equivalente 100% AWS para o pipeline Amazon Sales & Reviews (item 4.5 do
+  Arquitetura equivalente 100% AWS para o pipeline Olist Brazilian E-Commerce (item 4.5 do
   enunciado). A implementação real do projeto usa Airflow+dbt em Docker e Snowflake como base
   analítica; este template documenta como o mesmo pipeline seria construído usando apenas
   serviços gerenciados da AWS (S3 -> Glue -> Redshift Serverless -> SageMaker), com QuickSight
@@ -11,7 +11,7 @@ Description: >
 Parameters:
   ProjectName:
     Type: String
-    Default: amazon-pipeline
+    Default: olist-pipeline
     Description: Prefixo usado no nome dos recursos.
 
   BucketSuffix:
@@ -125,7 +125,7 @@ Resources:
       CatalogId: !Ref AWS::AccountId
       DatabaseInput:
         Name: !Sub "${ProjectName}_catalog"
-        Description: "Catalogo dos dados brutos/tratados do pipeline Amazon Sales & Reviews"
+        Description: "Catalogo dos dados brutos/tratados do pipeline Olist Brazilian E-Commerce"
 
   BronzeCrawler:
     Type: AWS::Glue::Crawler

@@ -4,19 +4,26 @@ Organização do bucket S3 (arquitetura em camadas / medalhão):
 
 ```
 s3://<AWS_S3_BUCKET>/
-├── bronze/                     # dados brutos, como baixados do Kaggle (imutável)
-│   ├── amazon_sales/<data>/amazon_sales.csv
-│   └── amazon_reviews/<data>/amazon_reviews.csv
-├── silver/                     # dados tratados/normalizados (saída de processing.py)
-│   ├── sales/<data>/sales.csv
-│   ├── reviews/<data>/reviews.csv
-│   └── ml_predictions/<data>/predictions.csv
+├── bronze/                     # 9 CSVs originais do Olist, como estão em data/raw/ (imutável)
+│   ├── customers/<data>/olist_customers_dataset.csv
+│   ├── geolocation/<data>/olist_geolocation_dataset.csv
+│   ├── orders/<data>/olist_orders_dataset.csv
+│   ├── order_items/<data>/olist_order_items_dataset.csv
+│   ├── order_payments/<data>/olist_order_payments_dataset.csv
+│   ├── order_reviews/<data>/olist_order_reviews_dataset.csv
+│   ├── products/<data>/olist_products_dataset.csv
+│   ├── sellers/<data>/olist_sellers_dataset.csv
+│   └── category_translation/<data>/product_category_name_translation.csv
+├── silver/                     # dados tipados/normalizados (saída de processing.py) - 1 pasta por tabela
+│   ├── customers/customers.csv, geolocation/geolocation.csv, orders/orders.csv, ...
+│   └── ml_predictions/predictions.csv
 └── gold/                       # reservado para exports agregados (ex.: extratos para BI externo)
 ```
 
-Cada partição usa uma pasta `<data>` no formato `dt=YYYY-MM-DD` para permitir reprocessamento e
-rastreabilidade entre execuções do pipeline (dado bruto → tratado → predição, exigido na
-seção 5.3 do enunciado).
+Cada partição de `bronze/` usa uma pasta `<data>` no formato `dt=YYYY-MM-DD` para permitir
+reprocessamento e rastreabilidade entre execuções do pipeline. `silver/` **não** particiona
+por data (chave estável, sobrescrita a cada execução) — ver o comentário em
+`upload_to_s3.py::upload_silver` para o motivo (evitar duplicação no `COPY INTO`).
 
 ## Criação do bucket
 
@@ -30,7 +37,7 @@ Snowflake). O DAG do Airflow assume que o bucket já existe.
 | Script | Função |
 |---|---|
 | `check_bucket.py` | Verifica que o bucket (provisionado pelo Terraform) existe e está acessível; falha rápido e com mensagem clara se o `terraform apply` ainda não rodou. |
-| `processing.py` | Lê os CSVs brutos (`data/raw/`), normaliza colunas, deriva o rótulo de sentimento a partir do rating e extrai features textuais básicas (contagem de palavras, caracteres, exclamações). Grava em `data/processed/`. |
+| `processing.py` | Lê os 9 CSVs brutos do Olist (`data/raw/`), tipa/normaliza colunas (datas, CEPs como string, numéricos) por tabela e grava em `data/processed/` - sem joins/agregações, que ficam a cargo do dbt. |
 | `upload_to_s3.py` | Sobe os arquivos brutos para `bronze/` e os processados para `silver/`. Também sabe subir as predições de ML geradas por `machine-learning/train_and_compare.py`. |
 
 ## Uso local
@@ -39,12 +46,12 @@ Snowflake). O DAG do Airflow assume que o bucket já existe.
 cd s3
 pip install -r requirements.txt
 
-python processing.py --sample-fallback   # ou sem a flag, se já tiver rodado o download do Kaggle
+python processing.py
 python upload_to_s3.py --layer bronze
 python upload_to_s3.py --layer silver
 ```
 
-Essas mesmas funções são chamadas pelas tasks do DAG (`airflow/dags/amazon_pipeline_dag.py`),
+Essas mesmas funções são chamadas pelas tasks do DAG (`airflow/dags/olist_pipeline_dag.py`),
 que é a forma "oficial" e reprodutível de rodar o pipeline (ver `README.md` na raiz).
 
 ## Segurança básica

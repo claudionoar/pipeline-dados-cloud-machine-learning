@@ -1,5 +1,5 @@
 # Copie para terraform.tfvars (fica de fora do git) e ajuste os valores.
 # bucket_name deve ser o mesmo valor de AWS_S3_BUCKET no .env da raiz.
 
-bucket_name = "amazon-pipeline-<seu-sufixo-unico>"
+bucket_name = "olist-pipeline-<seu-sufixo-unico>"
 aws_region  = "us-east-1"

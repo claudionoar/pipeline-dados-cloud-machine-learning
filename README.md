@@ -1,29 +1,30 @@
-# Pipeline de Dados em Nuvem para ML — Amazon Sales & Reviews
+# Pipeline de Dados em Nuvem para ML — Olist Brazilian E-Commerce
 
 Projeto final integrado (IFG — Pós-graduação em IA Aplicada, Módulo 2). Pipeline completo:
-ingestão em S3 → transformação → carga no Snowflake → modelagem dbt → classificação de
-sentimento (hard-code + scikit-learn) → dashboard Metabase, orquestrado pelo Airflow via
+ingestão em S3 → transformação → carga no Snowflake → modelagem dbt → previsão de atraso na
+entrega (hard-code + scikit-learn) → dashboard Metabase, orquestrado pelo Airflow via
 Docker/docker-compose. Enunciado completo em `Cronograma Projeto Trabalho.md`.
 
 ## Problema
 
-Classificação de sentimento de reviews de produtos Amazon (positive/neutral/negative), para
-apoiar um gestor de categoria a priorizar produtos com reputação em queda. Detalhes em
+Previsão de atraso na entrega de pedidos (`is_late`) do marketplace Olist, para apoiar um
+gestor de operações/logística a priorizar intervenção (troca de transportadora, aviso
+proativo ao cliente) em pedidos com risco alto de atraso. Detalhes em
 [`docs/problema.md`](docs/problema.md).
-
 
 ## Arquitetura
 
 ```
-Kaggle (CSV) --> data/raw/ --> s3/processing.py --> data/processed/ --> S3 (bronze/silver)
-   --> Snowflake RAW (COPY INTO) --> dbt (staging/dim/fact/marts) --> ANALYTICS
-   --> machine-learning/ (hard-code NB + sklearn NB) --> predictions --> S3/Snowflake
-   --> ANALYTICS.mart_ml_results / mart_sentiment_kpis --> Metabase (dashboard)
+data/raw/ (9 CSVs Olist + tradução de categoria) --> s3/processing.py --> data/processed/
+   --> S3 (bronze/silver) --> Snowflake RAW (COPY INTO)
+   --> dbt (staging/dim/fact/marts) --> ANALYTICS
+   --> machine-learning/ (regressão logística hard-code + sklearn) --> predictions --> S3/Snowflake
+   --> ANALYTICS.mart_ml_results / mart_delivery_kpis / mart_sentiment_kpis --> Metabase (dashboard)
 ```
 
 Diagramas completos (implementação híbrida + arquitetura 100% AWS equivalente) em
 [`docs/arquitetura.md`](docs/arquitetura.md). Tudo orquestrado pelo Airflow
-(`airflow/dags/amazon_pipeline_dag.py`).
+(`airflow/dags/olist_pipeline_dag.py`).
 
 ## Estrutura do repositório
 
@@ -33,11 +34,11 @@ s3/               scripts de ingestão/normalização/upload (boto3 + pandas)
 snowflake/        SQL de setup (warehouse/db/stage) + runner Python
 dbt/              projeto dbt (staging, dimensions, facts, ml, dashboard marts + testes)
 airflow/          Dockerfile da imagem custom + DAG do pipeline
-machine-learning/ classificação de sentimento: baseline, hard-code (numpy) e sklearn
+machine-learning/ previsão de atraso na entrega: baseline, hard-code (numpy) e sklearn
 dashboard/        setup e cards do dashboard Metabase
 cloudformation/   template.yaml da arquitetura 100% AWS equivalente + custos
 docs/             arquitetura, dicionário de dados, definição do problema, avaliação
-data/             cache local de dados (não versionado) — ver data/README.md
+data/             cache local de dados (raw versionado, processed não) — ver data/README.md
 docker-compose.yml orquestra Airflow (LocalExecutor) + Metabase
 ```
 
@@ -49,24 +50,25 @@ Pré-requisitos: apenas **Docker** e **Docker Compose** (nada mais é instalado 
 
 ```bash
 cp .env.example .env
-# preencha AWS_*, SNOWFLAKE_*, KAGGLE_* no .env
+# preencha AWS_* e SNOWFLAKE_* no .env
 ```
 
-- **AWS**: crie um usuário IAM com permissão de `s3:*` no bucket do projeto (free tier).
-- **Snowflake**: crie uma conta trial em https://signup.snowflake.com/.
-- **Kaggle**: token de API em https://www.kaggle.com/settings.
+- **AWS**: crie um usuário IAM com permissão de `s3:*` no bucket do projeto (free tier). Em
+  contas de laboratório (AWS Academy Learner Lab), as credenciais são temporárias e expiram
+  em algumas horas — atualize `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY`/`AWS_SESSION_TOKEN`
+  sempre que expirarem.
+- **Snowflake**: crie uma conta trial em https://signup.snowflake.com/ (ou use a conta de
+  laboratório fornecida pela disciplina).
 
-Sem credenciais reais ainda? Deixe `PIPELINE_USE_SAMPLE_DATA=true` no `.env` — todo o
-pipeline roda com dados sintéticos gerados em memória (ver `data/README.md`), exceto as
-etapas que exigem S3/Snowflake de fato.
+Sem credenciais reais ainda? Deixe `PIPELINE_USE_SAMPLE_DATA=true` no `.env` — o treino do ML
+roda com dados sintéticos gerados em memória (ver `machine-learning/README.md`), exceto as
+etapas que exigem S3/Snowflake de fato (ingestão, carga, dbt).
 
-### 2. Baixar os dados (opcional, ver `data/README.md` para rodar com amostra sintética)
+### 2. Os dados já estão no repositório
 
-```bash
-pip install kaggle
-kaggle datasets download -d karkavelrajaj/amazon-sales-dataset -p data/raw --unzip
-kaggle datasets download -d yasserh/amazon-product-reviews-dataset -p data/raw --unzip
-```
+Os 9 CSVs do dataset [Olist Brazilian E-Commerce](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce)
+(mais a tabela de tradução de categoria) já estão em `data/raw/` — não é necessário baixar
+nada do Kaggle. Ver `data/README.md` para o detalhe de cada arquivo.
 
 ### 3. Provisionar o bucket S3 (Terraform, via Docker)
 
@@ -101,11 +103,11 @@ docker compose up -d --build
 ### 6. Rodar o pipeline
 
 ```bash
-docker compose exec airflow-webserver airflow dags trigger amazon_pipeline
+docker compose exec airflow-webserver airflow dags trigger olist_pipeline
 ```
 
-Acompanhe as tasks na UI do Airflow. Ao final, `mart_sentiment_kpis` e `mart_ml_results`
-estarão disponíveis no Snowflake para o Metabase.
+Acompanhe as tasks na UI do Airflow. Ao final, `mart_ml_results`, `mart_delivery_kpis` e
+`mart_sentiment_kpis` estarão disponíveis no Snowflake para o Metabase.
 
 ### Rodando módulos individualmente (fora do Airflow)
 
@@ -120,11 +122,11 @@ desenvolvimento e debug sem depender do DAG completo.
 | AWS (S3) | `terraform/` (provisionamento) + `s3/` (ingestão), bucket real (seção 4.5) |
 | Snowflake | `snowflake/` |
 | dbt (staging/dimensions/facts + testes + docs) | `dbt/` |
-| Airflow (DAG funcional) | `airflow/dags/amazon_pipeline_dag.py` |
-| Pipeline Airflow → S3 → dbt → Snowflake | DAG `amazon_pipeline` |
-| Dataset estruturado + não estruturado | `docs/dicionario_dados.md` |
-| Modelagem de dados | `dbt/amazon_pipeline/models/marts/` (star schema) |
-| ML hard-code + biblioteca, comparação | `machine-learning/hardcode_naive_bayes.py` + `sklearn_model.py` |
+| Airflow (DAG funcional) | `airflow/dags/olist_pipeline_dag.py` |
+| Pipeline Airflow → S3 → dbt → Snowflake | DAG `olist_pipeline` |
+| Dataset estruturado + não estruturado | `docs/dicionario_dados.md` (pedidos/itens/pagamentos estruturados + texto de reviews) |
+| Modelagem de dados | `dbt/olist_pipeline/models/marts/` (star schema) |
+| ML hard-code + biblioteca, comparação | `machine-learning/hardcode_logistic_regression.py` + `sklearn_model.py` |
 | Template CloudFormation | `cloudformation/template.yaml` |
 | Diagrama arquitetural 100% AWS | `docs/arquitetura.md` |
 | Dashboard (Metabase) | `dashboard/README.md` |

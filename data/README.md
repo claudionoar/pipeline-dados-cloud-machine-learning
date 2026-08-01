@@ -1,40 +1,37 @@
 # data/
 
-Cache local dos dados usados pelo pipeline. Nada aqui é versionado (ver `.gitignore`) — os
-arquivos são baixados/gerados por script para manter o repositório leve e reprodutível.
-
 ```
 data/
-├── raw/          # CSVs originais baixados do Kaggle (camada equivalente ao "bronze")
-└── processed/    # CSVs normalizados pelo s3/processing.py antes do upload (camada "silver")
+├── raw/          # 9 CSVs originais do dataset Olist + tradução de categoria (versionado)
+└── processed/    # CSVs tipados/normalizados por s3/processing.py antes do upload ("silver", não versionado)
 ```
 
-## Como obter os dados originais
+## Dataset: Olist Brazilian E-Commerce
 
-1. Crie um token de API em https://www.kaggle.com/settings → API → "Create New Token" e
-   preencha `KAGGLE_USERNAME` / `KAGGLE_KEY` no `.env` (raiz do projeto).
-2. Baixe os dois datasets:
+`data/raw/` já contém os arquivos do dataset
+[Olist Brazilian E-Commerce Public Dataset](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce)
+(marketplace real brasileiro, ~100 mil pedidos entre 2016 e 2018) — não é necessário baixar
+nada do Kaggle:
 
-   ```bash
-   pip install kaggle
-   export KAGGLE_USERNAME=... KAGGLE_KEY=...
+| Arquivo | Grão | Papel no pipeline |
+|---|---|---|
+| `olist_orders_dataset.csv` | 1 linha por pedido | Base de `stg_orders`/`fact_orders` (datas de compra/aprovação/entrega). |
+| `olist_order_items_dataset.csv` | 1 linha por item de pedido | Base de `fact_order_items` (preço, frete, produto, vendedor). |
+| `olist_order_payments_dataset.csv` | 1 linha por pagamento | Base de `fact_payments`. |
+| `olist_order_reviews_dataset.csv` | 1 linha por review | Texto (`review_comment_message`, ~41% preenchido) + `review_score` → `fact_reviews`. |
+| `olist_customers_dataset.csv` | 1 linha por customer_id (por pedido) | Base de `dim_customers`. |
+| `olist_sellers_dataset.csv` | 1 linha por vendedor | Base de `dim_sellers`. |
+| `olist_products_dataset.csv` | 1 linha por produto | Base de `dim_products` (peso/dimensões usados como feature de ML). |
+| `olist_geolocation_dataset.csv` | várias linhas por CEP | Agregada em `dim_geolocation` (lat/lng médios), usada para calcular distância cliente-vendedor. |
+| `product_category_name_translation.csv` | 1 linha por categoria | Tradução pt→en, usada em `dim_products`. |
 
-   kaggle datasets download -d karkavelrajaj/amazon-sales-dataset -p data/raw --unzip
-   kaggle datasets download -d yasserh/amazon-product-reviews-dataset -p data/raw --unzip
-   ```
+`data/raw/*.csv` é versionado no git (arquivos já fazem parte do repositório) — diferente do
+projeto anterior (Amazon), não há mais download via Kaggle API nem detecção automática de
+qual CSV é qual: `s3/processing.py` lê cada arquivo pelo nome exato acima.
 
-3. Confirme que os arquivos existem:
-   - `data/raw/amazon.csv` (ou nome equivalente) — dataset estruturado de produtos/vendas.
-   - `data/raw/*.csv` — dataset de reviews (texto não estruturado).
+## Testar o ML sem a base carregada no Snowflake
 
-   Os nomes exatos dos arquivos podem variar conforme a versão publicada no Kaggle;
-   `s3/processing.py` tenta detectar automaticamente o CSV correto em `data/raw/` e
-   reconhece as variações de nome de coluna mais comuns dos dois datasets (ver
-   `docs/dicionario_dados.md`).
-
-## Testar o pipeline sem baixar os dados reais
-
-Todos os scripts em `s3/`, `machine-learning/` e o DAG do Airflow aceitam a flag
-`--sample-fallback` (ou a variável de ambiente `PIPELINE_USE_SAMPLE_DATA=true`), que gera uma
-pequena amostra sintética de produtos/reviews em memória. Isso permite validar que o código
-roda de ponta a ponta antes de esperar o download real ou configurar as credenciais de nuvem.
+`machine-learning/train_and_compare.py --source sample` gera features sintéticas com sinal
+realista (correlação entre distância/frete/prazo e atraso) em memória, sem precisar de
+credenciais Snowflake nem rodar o resto do pipeline. Útil para validar rapidamente o código
+dos dois modelos (hard-code e sklearn).

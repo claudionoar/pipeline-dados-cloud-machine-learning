@@ -1,8 +1,9 @@
-"""Orquestra o treino/avaliação/comparação dos modelos de sentimento e grava os resultados.
+"""Orquestra o treino/avaliação/comparação dos modelos de previsão de atraso na entrega e
+grava os resultados.
 
 Uso:
     python train_and_compare.py --source snowflake   # produção (via Airflow)
-    python train_and_compare.py --source csv         # usa data/processed/reviews.csv
+    python train_and_compare.py --source csv         # usa data/processed/late_delivery_features.csv
     python train_and_compare.py --source sample       # dados sintéticos, para testar o código
 
 Saídas em machine-learning/output/:
@@ -19,43 +20,44 @@ from pathlib import Path
 
 import pandas as pd
 
-from data_prep import load_dataset, split_dataset
+from data_prep import FEATURE_COLUMNS, load_dataset, split_dataset
 from evaluate import compute_metrics, majority_baseline, save_confusion_matrix, save_metrics_json
-from hardcode_naive_bayes import MultinomialNaiveBayesScratch
+from hardcode_logistic_regression import LogisticRegressionScratch
 from sklearn_model import build_pipeline
 
 OUTPUT_DIR = Path(__file__).resolve().parent / "output"
-MODEL_VERSION = "sentiment-nb-v1"
+MODEL_VERSION = "late-delivery-logreg-v1"
+LABELS = ["on_time", "late"]
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source", choices=["snowflake", "csv", "sample"], default="snowflake")
-    parser.add_argument("--max-features", type=int, default=4000)
     args = parser.parse_args()
 
     print(f"Carregando dados (source={args.source})...")
     df = load_dataset(source=args.source)
     train_df, test_df = split_dataset(df)
-    labels = sorted(df["sentiment_label"].unique())
-    print(f"Treino: {len(train_df)} | Teste: {len(test_df)} | Classes: {labels}")
+    print(f"Treino: {len(train_df)} | Teste: {len(test_df)} | Classes: {LABELS}")
+    print(f"Taxa de atraso no treino: {(train_df['label'] == 'late').mean():.1%}")
 
     all_metrics = {}
 
-    baseline_preds = majority_baseline(train_df["sentiment_label"], test_df["sentiment_label"])
-    all_metrics["baseline_majority"] = compute_metrics(test_df["sentiment_label"], baseline_preds, labels)
+    baseline_preds = majority_baseline(train_df["label"], test_df["label"])
+    all_metrics["baseline_majority"] = compute_metrics(test_df["label"], baseline_preds, LABELS)
 
-    print("Treinando Naive Bayes hard-code (numpy, sem sklearn)...")
-    hardcode_model = MultinomialNaiveBayesScratch(max_features=args.max_features)
-    hardcode_model.fit(train_df["review_text"], train_df["sentiment_label"])
-    hardcode_preds = hardcode_model.predict(test_df["review_text"])
-    all_metrics["naive_bayes_hardcode"] = compute_metrics(test_df["sentiment_label"], hardcode_preds, labels)
+    print("Treinando regressão logística hard-code (numpy, sem sklearn)...")
+    hardcode_model = LogisticRegressionScratch()
+    hardcode_model.fit(train_df[FEATURE_COLUMNS], train_df["is_late"])
+    hardcode_preds = hardcode_model.predict(test_df[FEATURE_COLUMNS])
+    all_metrics["logreg_hardcode"] = compute_metrics(test_df["label"], hardcode_preds, LABELS)
 
-    print("Treinando Naive Bayes com scikit-learn (TfidfVectorizer + MultinomialNB)...")
-    sklearn_model = build_pipeline(max_features=args.max_features)
-    sklearn_model.fit(train_df["review_text"], train_df["sentiment_label"])
-    sklearn_preds = list(sklearn_model.predict(test_df["review_text"]))
-    all_metrics["naive_bayes_sklearn"] = compute_metrics(test_df["sentiment_label"], sklearn_preds, labels)
+    print("Treinando regressão logística com scikit-learn (StandardScaler + LogisticRegression)...")
+    sklearn_model = build_pipeline()
+    sklearn_model.fit(train_df[FEATURE_COLUMNS], train_df["is_late"])
+    sklearn_pred_bool = sklearn_model.predict(test_df[FEATURE_COLUMNS])
+    sklearn_preds = ["late" if p else "on_time" for p in sklearn_pred_bool]
+    all_metrics["logreg_sklearn"] = compute_metrics(test_df["label"], sklearn_preds, LABELS)
 
     print("\nComparação de métricas:")
     for name, metrics in all_metrics.items():
@@ -63,15 +65,14 @@ def main() -> None:
         print(f"  {name}: {formatted}")
 
     save_metrics_json(all_metrics, OUTPUT_DIR / "metrics_comparison.json")
-    save_confusion_matrix(test_df["sentiment_label"], hardcode_preds, labels,
-                           "Naive Bayes (hard-code)", OUTPUT_DIR / "confusion_matrix_hardcode.png")
-    save_confusion_matrix(test_df["sentiment_label"], sklearn_preds, labels,
-                           "Naive Bayes (sklearn)", OUTPUT_DIR / "confusion_matrix_sklearn.png")
+    save_confusion_matrix(test_df["label"], hardcode_preds, LABELS,
+                           "Regressão Logística (hard-code)", OUTPUT_DIR / "confusion_matrix_hardcode.png")
+    save_confusion_matrix(test_df["label"], sklearn_preds, LABELS,
+                           "Regressão Logística (sklearn)", OUTPUT_DIR / "confusion_matrix_sklearn.png")
 
     predictions_df = pd.DataFrame({
-        "review_id": test_df["review_id"].values,
-        "product_id": test_df["product_id"].values,
-        "true_label": test_df["sentiment_label"].values,
+        "order_id": test_df["order_id"].values,
+        "true_label": test_df["label"].values,
         "predicted_label_hardcode": hardcode_preds,
         "predicted_label_sklearn": sklearn_preds,
         "model_version": MODEL_VERSION,

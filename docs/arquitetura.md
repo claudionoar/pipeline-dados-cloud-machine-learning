@@ -4,9 +4,8 @@
 
 ```mermaid
 flowchart LR
-    subgraph Kaggle["Kaggle (fonte externa)"]
-        K1[amazon-sales-dataset]
-        K2[amazon-product-reviews-dataset]
+    subgraph Olist["Dataset Olist (data/raw/, já versionado)"]
+        O1[9 CSVs +\ntradução de categoria]
     end
 
     subgraph Docker["docker-compose (local)"]
@@ -21,22 +20,21 @@ flowchart LR
         S3B[("S3\nbronze / silver / gold")]
     end
 
-    subgraph SF["Snowflake (SaaS, conta trial)"]
-        RAW[(RAW.SALES\nRAW.REVIEWS\nRAW.ML_PREDICTIONS)]
+    subgraph SF["Snowflake (SaaS)"]
+        RAW[(RAW.ORDERS, RAW.ORDER_ITEMS,\nRAW.CUSTOMERS, RAW.PRODUCTS...\nRAW.ML_PREDICTIONS)]
         AN[(ANALYTICS\nstaging / dim / fact / marts)]
     end
 
-    K1 --> |download manual /\nkaggle API| RAWDATA[data/raw/]
-    K2 --> RAWDATA
+    O1 --> RAWDATA[data/raw/]
     RAWDATA --> |s3/processing.py| SILVER[data/processed/]
     RAWDATA --> |upload bronze| S3B
     SILVER --> |upload silver| S3B
-    S3B --> |COPY INTO\nvia storage integration| RAW
+    S3B --> |COPY INTO\nvia stage externo| RAW
     RAW --> |dbt run| AN
-    AN --> |ml_feature_table| ML[machine-learning/\nhard-code + sklearn]
+    AN --> |mart_late_delivery_features| ML[machine-learning/\nhard-code + sklearn]
     ML --> |predictions.csv| S3B
     S3B --> |COPY INTO| RAW
-    AN --> |mart_sentiment_kpis\nmart_ml_results| MB
+    AN --> |mart_delivery_kpis\nmart_sentiment_kpis\nmart_ml_results| MB
     AF -. orquestra todas as etapas .-> S3B
     AF -. orquestra .-> RAW
     AF -. orquestra .-> DBT
@@ -58,7 +56,7 @@ flowchart LR
     GLUEJOB[AWS Glue Job\n(ETL PySpark,\nequivalente a\ns3/processing.py)]
     REDSHIFT[(Amazon Redshift\nServerless)]
     DBTR[dbt (dbt-redshift)\nstaging / dim / fact / marts]
-    SAGEMAKER[Amazon SageMaker\nNotebook / Training Job\n(Naive Bayes hard-code + sklearn)]
+    SAGEMAKER[Amazon SageMaker\nNotebook / Training Job\n(regressão logística\nhard-code + sklearn)]
     MWAA[Amazon MWAA\n(orquestra todo o fluxo)]
     QS[Amazon QuickSight\ndashboard]
     CW[Amazon CloudWatch\nlogs e métricas]
@@ -86,8 +84,8 @@ para o esquema de cada tabela/arquivo.
 ## Segurança básica
 
 - Bucket S3 privado (Block Public Access), versionado e criptografado (SSE-S3).
-- Credenciais (AWS, Snowflake, Kaggle) só existem em `.env` (fora do controle de versão) e
-  como variáveis de ambiente dentro dos containers.
+- Credenciais (AWS, Snowflake) só existem em `.env` (fora do controle de versão) e como
+  variáveis de ambiente dentro dos containers.
 - **Limitação operacional identificada durante a execução real** (item 9 dos objetivos de
   Cloud Computing): o design original previa Snowflake acessando o S3 via **Storage
   Integration** (IAM Role assumida via `sts:AssumeRole`, sem nenhuma chave estática dentro do
@@ -98,5 +96,10 @@ para o esquema de cada tabela/arquivo.
   Snowflake, com o trade-off de precisar ser recriada quando a sessão do laboratório expira
   (poucas horas). Em uma conta AWS sem essa restrição, o caminho original com Storage
   Integration volta a ser a opção recomendada (ver `snowflake/README.md`).
+- **Conta Snowflake compartilhada**: a role usada (`TRAINING_ROLE`, conta SFEDU02) é
+  compartilhada por toda a turma — dezenas de databases pessoais coexistem na mesma conta.
+  Para não colidir com o trabalho de outros alunos, o database alvo deste projeto tem nome
+  específico (`SNOWFLAKE_DATABASE` no `.env`, não um nome genérico), e os schemas `RAW`/
+  `ANALYTICS` ficam isolados dentro dele.
 - No template 100% AWS, os serviços (Glue, SageMaker) usam IAM Roles com permissão mínima
   (apenas leitura/escrita no bucket do projeto).

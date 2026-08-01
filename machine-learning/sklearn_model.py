@@ -1,14 +1,15 @@
-"""Mesmo algoritmo de `hardcode_naive_bayes.py` (Naive Bayes multinomial sobre bag-of-words),
-agora usando bibliotecas Python (scikit-learn), conforme pede o item 4.6.b do enunciado."""
+"""Mesmo algoritmo de `hardcode_logistic_regression.py` (regressão logística sobre features
+estruturadas padronizadas), agora usando bibliotecas Python (scikit-learn), conforme pede o
+item 4.6.b do enunciado."""
 from __future__ import annotations
 
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.naive_bayes import MultinomialNB
+from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
 
 
-def build_pipeline(max_features: int = 4000) -> Pipeline:
+def build_pipeline() -> Pipeline:
     return Pipeline([
-        ("tfidf", TfidfVectorizer(max_features=max_features, lowercase=True)),
-        ("clf", MultinomialNB()),
+        ("scaler", StandardScaler()),
+        ("clf", LogisticRegression(class_weight="balanced", max_iter=2000)),
     ])

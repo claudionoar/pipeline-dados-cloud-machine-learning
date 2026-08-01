@@ -1,4 +1,4 @@
--- Garante que o role usado pelo dbt (definido em dbt/amazon_pipeline/profiles.yml.example)
+-- Garante que o role usado pelo dbt (definido em dbt/olist_pipeline/profiles.yml.example)
 -- tenha acesso ao warehouse/database/schemas do projeto.
 
 GRANT USAGE ON WAREHOUSE ${SNOWFLAKE_WAREHOUSE} TO ROLE ${SNOWFLAKE_ROLE};

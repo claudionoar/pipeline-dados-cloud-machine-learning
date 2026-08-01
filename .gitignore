@@ -8,8 +8,8 @@ venv/
 # Dados (baixados do Kaggle / gerados pelo pipeline)
 #data/raw/*
 #!data/raw/.gitkeep
-#data/processed/*
-#!data/processed/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
 
 # Credenciais
 .env

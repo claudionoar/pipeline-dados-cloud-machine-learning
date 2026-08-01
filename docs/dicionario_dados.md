@@ -1,91 +1,75 @@
 # Dicionário de dados
 
-## Fontes brutas (camada bronze)
+## Fonte bruta (camada bronze): Olist Brazilian E-Commerce
 
-### 1. `amazon-sales-dataset` (estruturado)
+- **Origem**: https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce
+- **Formato**: 9 CSVs relacionais + 1 tabela de tradução de categoria, ~100 mil pedidos reais
+  de um marketplace brasileiro (2016-2018), já colocados em `data/raw/`.
 
-- **Origem**: https://www.kaggle.com/datasets/karkavelrajaj/amazon-sales-dataset
-- **Formato**: CSV, ~1.500 produtos do marketplace indiano da Amazon.
-- **Colunas originais esperadas** (podem variar levemente entre versões republicadas do
-  dataset — `s3/processing.py` reconhece os aliases mais comuns, ver `SALES_ALIASES`):
+| Arquivo | Grão | Colunas principais |
+|---|---|---|
+| `olist_orders_dataset.csv` | 1 linha por pedido | `order_id`, `customer_id`, `order_status`, `order_purchase_timestamp`, `order_approved_at`, `order_delivered_carrier_date`, `order_delivered_customer_date`, `order_estimated_delivery_date` |
+| `olist_order_items_dataset.csv` | 1 linha por item de pedido | `order_id`, `order_item_id`, `product_id`, `seller_id`, `shipping_limit_date`, `price`, `freight_value` |
+| `olist_order_payments_dataset.csv` | 1 linha por pagamento | `order_id`, `payment_sequential`, `payment_type`, `payment_installments`, `payment_value` |
+| `olist_order_reviews_dataset.csv` | 1 linha por review | `review_id`, `order_id`, `review_score` (1-5), `review_comment_title`, `review_comment_message`, `review_creation_date`, `review_answer_timestamp` |
+| `olist_customers_dataset.csv` | 1 linha por customer_id (por pedido) | `customer_id`, `customer_unique_id`, `customer_zip_code_prefix`, `customer_city`, `customer_state` |
+| `olist_sellers_dataset.csv` | 1 linha por vendedor | `seller_id`, `seller_zip_code_prefix`, `seller_city`, `seller_state` |
+| `olist_products_dataset.csv` | 1 linha por produto | `product_id`, `product_category_name` (pt), `product_weight_g`, `product_length_cm`, `product_height_cm`, `product_width_cm`, `product_photos_qty` |
+| `olist_geolocation_dataset.csv` | várias linhas por CEP | `geolocation_zip_code_prefix`, `geolocation_lat`, `geolocation_lng`, `geolocation_city`, `geolocation_state` |
+| `product_category_name_translation.csv` | 1 linha por categoria | `product_category_name`, `product_category_name_english` |
 
-  | Coluna original | Descrição |
-  |---|---|
-  | `product_id` | ASIN do produto |
-  | `product_name` | Nome/título do produto |
-  | `category` | Categoria hierárquica separada por `\|` (ex.: `Electronics\|Accessories\|...`) |
-  | `discounted_price` | Preço com desconto (string com símbolo de moeda, ex.: `₹399`) |
-  | `actual_price` | Preço de tabela |
-  | `discount_percentage` | Percentual de desconto (string, ex.: `64%`) |
-  | `rating` | Rating médio do produto (1 a 5, pode conter valores inválidos/texto) |
-  | `rating_count` | Quantidade de avaliações (string com separador de milhar) |
-  | `about_product` | Descrição/bullet points do produto |
-  | `user_id`, `user_name`, `review_id`, `review_title`, `review_content` | Amostra de reviews embutida no próprio dataset (não usada diretamente — o corpus de reviews vem do dataset 2, mais volumoso) |
-  | `img_link`, `product_link` | URLs |
+### Limitações importantes
 
-- **Limitações**: cobre apenas o marketplace indiano (preços em rúpias); `rating`/
-  `rating_count` são agregados no momento da coleta, não uma série temporal.
-
-### 2. `amazon-product-reviews-dataset` (não estruturado)
-
-- **Origem**: https://www.kaggle.com/datasets/yasserh/amazon-product-reviews-dataset
-- **Formato**: CSV, dezenas de milhares de reviews de texto livre.
-- **Colunas originais esperadas** (schema no estilo "Amazon Fine Food Reviews"; aliases
-  reconhecidos em `s3/processing.py::REVIEWS_ALIASES`):
-
-  | Coluna original | Descrição |
-  |---|---|
-  | `Id` / `review_id` | Identificador da review |
-  | `ProductId` / `asin` | Produto avaliado |
-  | `UserId` / `reviewerID` | Autor da review |
-  | `Summary` / `summary` | Título curto da review |
-  | `Text` / `reviewText` | Corpo do texto da review (**fonte não estruturada principal**) |
-  | `Score` / `overall` | Rating dado pelo usuário (1 a 5) — usado para derivar o rótulo de sentimento |
-  | `Time` / `reviewTime` | Data da review (unix timestamp ou string) |
-
-- **Limitações importantes**:
-  - Os produtos deste dataset **não correspondem** ao catálogo do dataset 1 (mercados/
-    períodos diferentes) — o `product_id` de boa parte das reviews não terá correspondência
-    em `dim_product`. Isso é esperado: o corpus de reviews é usado para treinar/avaliar o
-    classificador de sentimento de forma independente do catálogo específico; o join com
-    produto (quando existe) só enriquece a análise por categoria/preço.
-  - O rótulo de sentimento é **derivado do rating**, não anotado manualmente — reviews
-    "3 estrelas" costumam ser ambíguas entre neutro/levemente negativo.
+- `review_comment_message` está **vazio em ~59% das linhas** (41% têm texto) — usado só nos
+  KPIs de sentimento do dashboard (`mart_sentiment_kpis`), não como fonte do modelo de ML
+  principal (que usa features estruturadas do pedido, não texto).
+- `olist_geolocation_dataset.csv` tem várias linhas por prefixo de CEP (coordenadas de
+  usuários distintos que digitaram o mesmo CEP) e cobertura incompleta — nem todo
+  `customer_zip_code_prefix`/`seller_zip_code_prefix` tem uma linha correspondente, gerando
+  `distance_km` nulo nesses casos (documentado em `dim_geolocation`/`mart_late_delivery_features`).
+- `order_status` tem 8 valores possíveis (`delivered`, `shipped`, `canceled`, `unavailable`,
+  `invoiced`, `processing`, `created`, `approved`) — a feature de atraso na entrega só é
+  calculada para pedidos `delivered` com as duas datas (entregue/estimada) presentes (~97 mil
+  de ~99 mil pedidos).
+- `customer_id` é por pedido, não por pessoa — para identificar o mesmo cliente entre pedidos
+  diferentes, usa-se `customer_unique_id`.
+- `review_id` **não é uma chave primária isolada**: ~0,8% dos valores (789 de 99.224) se
+  repetem em `order_id` diferentes (limitação real da fonte, confirmada nos dados carregados).
+  O grão real de `stg_order_reviews`/`fact_reviews` é `review_id + order_id` — os testes dbt e
+  a surrogate key (`review_key`) usam essa combinação, não só `review_id`.
 
 ## Esquema canônico (camada silver, saída de `s3/processing.py`)
 
-### `sales.csv` → `RAW.SALES`
+Uma tabela por arquivo de origem, com o mesmo grão, apenas tipada (datas parseadas, CEPs como
+string para preservar zeros à esquerda, numéricos coercidos) — sem joins/agregações, que ficam
+a cargo do dbt. Ver `snowflake/sql/02_create_raw_tables.sql` para o schema exato de cada
+`RAW.*` correspondente.
+
+## Tabela final de features de ML: `mart_late_delivery_features` (dbt) → `ANALYTICS`
+
+Grão: `order_id` (só pedidos `delivered` com data de entrega e data estimada presentes).
 
 | Coluna | Tipo | Observação |
 |---|---|---|
-| `product_id` | string | chave primária |
-| `product_name` | string | |
-| `category`, `category_root` | string | `category_root` = primeiro segmento de `category` |
-| `discounted_price`, `actual_price`, `discount_percentage` | float | limpos de símbolos de moeda/`%` |
-| `rating` | float | 1–5 |
-| `rating_count` | int | |
-| `about_product`, `img_link`, `product_link` | string | |
-| `ingested_at` | timestamp | data/hora do processamento |
-
-### `reviews.csv` → `RAW.REVIEWS`
-
-| Coluna | Tipo | Observação |
-|---|---|---|
-| `review_id` | string | chave primária (gerado se ausente na fonte) |
-| `product_id` | string | pode não existir em `dim_product` (ver limitações acima) |
-| `user_id`, `review_title`, `review_text` | string | |
-| `rating` | int | 1–5 |
-| `review_date` | timestamp | pode ser nulo |
-| `word_count`, `char_count`, `exclamation_count` | int | atributos extraídos do texto |
-| `sentiment_label` | string | `positive` / `neutral` / `negative`, derivado do `rating` |
-| `ingested_at` | timestamp | |
+| `order_id` | string | chave primária |
+| `is_late` | boolean | **alvo**: `order_delivered_customer_date > order_estimated_delivery_date` |
+| `total_price`, `total_freight` | float | soma dos itens do pedido |
+| `item_count` | int | número de itens |
+| `avg_product_weight_g`, `avg_product_volume_cm3` | float | média dos produtos do pedido |
+| `payment_installments_max`, `payment_value_total` | int/float | agregado dos pagamentos |
+| `approval_delay_hours` | float | horas entre compra e aprovação do pagamento |
+| `estimated_delivery_days` | int | dias prometidos ao cliente |
+| `purchase_dow`, `purchase_month` | int | sazonalidade |
+| `distance_km` | float | distância (haversine) entre cliente e vendedor "primário" do pedido |
+| `same_state_flag` | 0/1 | cliente e vendedor no mesmo estado |
+| `customer_state`, `seller_state` | string | usados nos KPIs do dashboard, não no modelo |
 
 ### `predictions.csv` (saída de `machine-learning/`) → `RAW.ML_PREDICTIONS`
 
 | Coluna | Tipo | Observação |
 |---|---|---|
-| `review_id`, `product_id` | string | referência à review avaliada (conjunto de teste) |
-| `true_label` | string | rótulo real |
-| `predicted_label_hardcode` | string | predição do Naive Bayes implementado do zero |
-| `predicted_label_sklearn` | string | predição do Naive Bayes via scikit-learn |
+| `order_id` | string | referência ao pedido avaliado (conjunto de teste) |
+| `true_label` | string | `on_time` / `late` |
+| `predicted_label_hardcode` | string | predição da regressão logística implementada do zero |
+| `predicted_label_sklearn` | string | predição da regressão logística via scikit-learn |
 | `model_version`, `predicted_at` | string/timestamp | rastreabilidade |

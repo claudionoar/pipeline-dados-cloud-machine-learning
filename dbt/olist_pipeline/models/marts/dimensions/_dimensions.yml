@@ -1,0 +1,54 @@
+version: 2
+
+models:
+  - name: dim_customers
+    description: "Um registro por customer_id (grão: customer_id)."
+    columns:
+      - name: customer_key
+        tests:
+          - not_null
+          - unique
+      - name: customer_id
+        tests:
+          - not_null
+          - unique
+
+  - name: dim_sellers
+    description: "Um registro por vendedor (grão: seller_id)."
+    columns:
+      - name: seller_key
+        tests:
+          - not_null
+          - unique
+      - name: seller_id
+        tests:
+          - not_null
+          - unique
+
+  - name: dim_products
+    description: "Um registro por produto, com categoria traduzida para inglês (grão: product_id)."
+    columns:
+      - name: product_key
+        tests:
+          - not_null
+          - unique
+      - name: product_id
+        tests:
+          - not_null
+          - unique
+
+  - name: dim_geolocation
+    description: "Lat/lng médio (e cidade/estado mais frequentes) por prefixo de CEP - agregado a partir de stg_geolocation (grão: zip_code_prefix)."
+    columns:
+      - name: zip_code_prefix
+        tests:
+          - not_null
+          - unique
+
+  - name: dim_date
+    description: "Calendário diário (2016-01-01 a 2018-12-31) para análises temporais."
+    columns:
+      - name: date_day
+        tests:
+          - not_null
+          - unique

@@ -1,0 +1,20 @@
+version: 2
+
+models:
+  - name: mart_sentiment_kpis
+    description: "Indicadores de sentimento/rating por categoria de produto (categoria do primeiro item do pedido), consumidos pelo dashboard Metabase."
+
+  - name: mart_delivery_kpis
+    description: "% de pedidos atrasados e tempo médio de entrega por estado do cliente."
+
+  - name: mart_ml_results
+    description: "Predições de atraso na entrega (hard-code vs. sklearn) do conjunto de teste, com estado do cliente associado."
+    columns:
+      - name: order_id
+        tests:
+          - not_null
+      - name: true_label
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['on_time', 'late']

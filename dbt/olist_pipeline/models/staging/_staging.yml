@@ -1,0 +1,106 @@
+version: 2
+
+sources:
+  - name: raw
+    description: "Tabelas carregadas via COPY INTO a partir da camada silver do S3 (schema fixo RAW, ver snowflake/sql/)."
+    schema: RAW
+    tables:
+      - name: customers
+        description: "Um customer_id por pedido (customer_unique_id identifica a pessoa entre pedidos)."
+      - name: geolocation
+        description: "Lat/lng por prefixo de CEP (várias linhas por prefixo)."
+      - name: orders
+        description: "Pedidos (grão: order_id)."
+      - name: order_items
+        description: "Itens de pedido (grão: order_id + order_item_id)."
+      - name: order_payments
+        description: "Pagamentos de pedido (grão: order_id + payment_sequential)."
+      - name: order_reviews
+        description: "Reviews de pedido, com review_score e texto (grão: review_id)."
+      - name: products
+        description: "Catálogo de produtos (grão: product_id)."
+      - name: sellers
+        description: "Vendedores (grão: seller_id)."
+      - name: category_translation
+        description: "Tradução pt->en do nome de categoria de produto."
+      - name: ml_predictions
+        description: "Predições de atraso na entrega geradas pelo módulo machine-learning/."
+
+models:
+  - name: stg_customers
+    description: "Staging 1:1 sobre raw.customers."
+    columns:
+      - name: customer_id
+        tests:
+          - not_null
+          - unique
+
+  - name: stg_geolocation
+    description: "Staging 1:1 sobre raw.geolocation (várias linhas por prefixo de CEP - agregado em dim_geolocation)."
+
+  - name: stg_orders
+    description: "Staging 1:1 sobre raw.orders."
+    columns:
+      - name: order_id
+        tests:
+          - not_null
+          - unique
+      - name: order_status
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['delivered', 'shipped', 'canceled', 'unavailable', 'invoiced',
+                         'processing', 'created', 'approved']
+
+  - name: stg_order_items
+    description: "Staging 1:1 sobre raw.order_items."
+
+  - name: stg_order_payments
+    description: "Staging 1:1 sobre raw.order_payments."
+
+  - name: stg_order_reviews
+    description: >
+      Staging sobre raw.order_reviews, com sentiment_label derivado do review_score (>=4
+      positive, <=2 negative, senão neutral). Grão real: review_id + order_id - ~0,8% dos
+      review_id do dataset Olist se repetem em pedidos (order_id) diferentes (limitação
+      conhecida da fonte, não um bug do pipeline - ver docs/dicionario_dados.md).
+    columns:
+      - name: review_id
+        tests:
+          - not_null
+      - name: sentiment_label
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['positive', 'neutral', 'negative']
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: ['review_id', 'order_id']
+
+  - name: stg_products
+    description: "Staging 1:1 sobre raw.products."
+    columns:
+      - name: product_id
+        tests:
+          - not_null
+          - unique
+
+  - name: stg_sellers
+    description: "Staging 1:1 sobre raw.sellers."
+    columns:
+      - name: seller_id
+        tests:
+          - not_null
+          - unique
+
+  - name: stg_category_translation
+    description: "Staging 1:1 sobre raw.category_translation."
+
+  - name: stg_ml_predictions
+    description: "Staging 1:1 sobre raw.ml_predictions."
+    columns:
+      - name: order_id
+        tests:
+          - not_null
