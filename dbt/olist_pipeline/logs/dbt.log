@@ -9099,3 +9099,139 @@ having count(*) > 1
 [0m14:46:17.098512 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x78e65d229d50>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x78e65d208890>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x78e65b6b5d10>]}
 [0m14:46:17.100135 [debug] [MainThread]: Flushing usage events
 [0m14:46:17.978230 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m14:47:40.125655 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x79eea4612dd0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x79eea4487c50>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x79eea44ea690>]}
+
+
+============================== 14:47:40.150912 | 6075a182-f4a6-4f21-a599-2260d3e18157 ==============================
+[0m14:47:40.150912 [info ] [MainThread]: Running with dbt=1.12.0
+[0m14:47:40.153150 [debug] [MainThread]: running dbt with arguments {'fail_fast': 'False', 'log_cache_events': 'False', 'send_anonymous_usage_stats': 'True', 'profiles_dir': '/opt/airflow/project/dbt/olist_pipeline', 'hints_enabled': 'True', 'no_print': 'None', 'use_experimental_parser': 'False', 'target_path': 'None', 'invocation_command': 'dbt run --select stg_ml_predictions mart_ml_results --project-dir /opt/airflow/project/dbt/olist_pipeline --profiles-dir /opt/airflow/project/dbt/olist_pipeline', 'introspect': 'True', 'static_parser': 'True', 'debug': 'False', 'indirect_selection': 'eager', 'cache_selected_only': 'False', 'warn_error': 'None', 'write_json': 'True', 'use_colors': 'True', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'empty': 'False', 'log_path': '/opt/airflow/project/dbt/olist_pipeline/logs', 'printer_width': '80', 'maximum_seed_size_mib': '1', 'log_format': 'default', 'partial_parse': 'True', 'quiet': 'False', 'version_check': 'True'}
+[0m14:47:41.064326 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'project_id', 'label': '6075a182-f4a6-4f21-a599-2260d3e18157', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x79eea298d750>]}
+[0m14:47:41.330673 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'adapter_info', 'label': '6075a182-f4a6-4f21-a599-2260d3e18157', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x79eea44d4910>]}
+[0m14:47:41.342644 [info ] [MainThread]: Registered adapter: snowflake=1.8.4
+[0m14:47:41.754736 [debug] [MainThread]: checksum: 5029ac201ca95621a3c13f11212ebb88f023f43e83ad2fd6641dd4f215921ae1, vars: {}, profile: olist_pipeline, target: dev, version: 1.12.0
+[0m14:47:43.662456 [debug] [MainThread]: Partial parsing enabled: 0 files deleted, 0 files added, 0 files changed.
+[0m14:47:43.664067 [debug] [MainThread]: Nothing changed, skipping partial parsing.
+[0m14:47:43.665635 [debug] [MainThread]: Partial parsing enabled, no changes found, skipping parsing
+[0m14:47:43.681628 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'load_project', 'label': '6075a182-f4a6-4f21-a599-2260d3e18157', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x79eea23b4d10>]}
+[0m14:47:43.991391 [debug] [MainThread]: Wrote artifact WritableManifest to /opt/airflow/project/dbt/olist_pipeline/target/manifest.json
+[0m14:47:44.001854 [debug] [MainThread]: Wrote artifact SemanticManifest to /opt/airflow/project/dbt/olist_pipeline/target/semantic_manifest.json
+[0m14:47:44.022126 [debug] [MainThread]: Wrote artifact OsiDocument to /opt/airflow/project/dbt/olist_pipeline/target/osi_document.json
+[0m14:47:44.050998 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'resource_counts', 'label': '6075a182-f4a6-4f21-a599-2260d3e18157', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x79eea44cd310>]}
+[0m14:47:44.052612 [info ] [MainThread]: Found 23 models, 51 data tests, 10 sources, 621 macros
+[0m14:47:44.054303 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': '6075a182-f4a6-4f21-a599-2260d3e18157', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x79eea2542210>]}
+[0m14:47:44.058440 [info ] [MainThread]: 
+[0m14:47:44.060373 [info ] [MainThread]: Concurrency: 4 threads (target='dev')
+[0m14:47:44.062032 [info ] [MainThread]: 
+[0m14:47:44.064109 [debug] [MainThread]: Acquiring new snowflake connection 'master'
+[0m14:47:44.070978 [debug] [ThreadPool]: Acquiring new snowflake connection 'list_PROJETO_OLIST_DB'
+[0m14:47:44.086273 [debug] [ThreadPool]: Using snowflake connection "list_PROJETO_OLIST_DB"
+[0m14:47:44.088167 [debug] [ThreadPool]: On list_PROJETO_OLIST_DB: /* {"app": "dbt", "dbt_version": "1.12.0", "profile_name": "olist_pipeline", "target_name": "dev", "connection_name": "list_PROJETO_OLIST_DB"} */
+show terse schemas in database PROJETO_OLIST_DB
+    limit 10000
+[0m14:47:44.089483 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m14:47:46.194837 [debug] [ThreadPool]: SQL status: SUCCESS 5 in 2.105 seconds
+[0m14:47:46.198128 [debug] [ThreadPool]: On list_PROJETO_OLIST_DB: Close
+[0m14:47:46.716121 [debug] [ThreadPool]: Re-using an available connection from the pool (formerly list_PROJETO_OLIST_DB, now list_PROJETO_OLIST_DB_ANALYTICS)
+[0m14:47:46.730625 [debug] [ThreadPool]: Using snowflake connection "list_PROJETO_OLIST_DB_ANALYTICS"
+[0m14:47:46.732861 [debug] [ThreadPool]: On list_PROJETO_OLIST_DB_ANALYTICS: /* {"app": "dbt", "dbt_version": "1.12.0", "profile_name": "olist_pipeline", "target_name": "dev", "connection_name": "list_PROJETO_OLIST_DB_ANALYTICS"} */
+show objects in PROJETO_OLIST_DB.ANALYTICS limit 10000
+[0m14:47:46.735264 [debug] [ThreadPool]: Opening a new connection, currently in state closed
+[0m14:47:48.584144 [debug] [ThreadPool]: SQL status: SUCCESS 23 in 1.849 seconds
+[0m14:47:48.588706 [debug] [ThreadPool]: On list_PROJETO_OLIST_DB_ANALYTICS: Close
+[0m14:47:49.098159 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': '6075a182-f4a6-4f21-a599-2260d3e18157', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x79eea25d5510>]}
+[0m14:47:49.123390 [debug] [Thread-1 (]: Began running node model.olist_pipeline.stg_ml_predictions
+[0m14:47:49.125992 [info ] [Thread-1 (]: 1 of 2 START sql view model ANALYTICS.stg_ml_predictions ....................... [RUN]
+[0m14:47:49.129396 [debug] [Thread-1 (]: Re-using an available connection from the pool (formerly list_PROJETO_OLIST_DB_ANALYTICS, now model.olist_pipeline.stg_ml_predictions)
+[0m14:47:49.131480 [debug] [Thread-1 (]: Began compiling node model.olist_pipeline.stg_ml_predictions
+[0m14:47:49.166489 [debug] [Thread-1 (]: Writing injected SQL for node "model.olist_pipeline.stg_ml_predictions"
+[0m14:47:49.201114 [debug] [Thread-1 (]: Began executing node model.olist_pipeline.stg_ml_predictions
+[0m14:47:49.256338 [debug] [Thread-1 (]: Writing runtime sql for node "model.olist_pipeline.stg_ml_predictions"
+[0m14:47:49.294147 [debug] [Thread-1 (]: Using snowflake connection "model.olist_pipeline.stg_ml_predictions"
+[0m14:47:49.296382 [debug] [Thread-1 (]: On model.olist_pipeline.stg_ml_predictions: /* {"app": "dbt", "dbt_version": "1.12.0", "profile_name": "olist_pipeline", "target_name": "dev", "node_id": "model.olist_pipeline.stg_ml_predictions"} */
+create or replace   view PROJETO_OLIST_DB.ANALYTICS.stg_ml_predictions
+  
+   as (
+    with source as (
+    select * from PROJETO_OLIST_DB.RAW.ml_predictions
+)
+
+select
+    order_id,
+    true_label,
+    predicted_label_hardcode,
+    predicted_label_sklearn,
+    model_version,
+    predicted_at
+from source
+  );
+[0m14:47:49.298558 [debug] [Thread-1 (]: Opening a new connection, currently in state closed
+[0m14:47:51.279295 [debug] [Thread-1 (]: SQL status: SUCCESS 1 in 1.980 seconds
+[0m14:47:51.320930 [debug] [Thread-1 (]: On model.olist_pipeline.stg_ml_predictions: Close
+[0m14:47:51.837249 [debug] [Thread-1 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': '6075a182-f4a6-4f21-a599-2260d3e18157', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x79eea2870ed0>]}
+[0m14:47:51.840637 [info ] [Thread-1 (]: 1 of 2 OK created sql view model ANALYTICS.stg_ml_predictions .................. [[32mSUCCESS 1[0m in 2.71s]
+[0m14:47:51.846536 [debug] [Thread-1 (]: Finished running node model.olist_pipeline.stg_ml_predictions
+[0m14:47:51.863332 [debug] [Thread-3 (]: Began running node model.olist_pipeline.mart_ml_results
+[0m14:47:51.865907 [info ] [Thread-3 (]: 2 of 2 START sql table model ANALYTICS.mart_ml_results ......................... [RUN]
+[0m14:47:51.868690 [debug] [Thread-3 (]: Acquiring new snowflake connection 'model.olist_pipeline.mart_ml_results'
+[0m14:47:51.870923 [debug] [Thread-3 (]: Began compiling node model.olist_pipeline.mart_ml_results
+[0m14:47:51.896133 [debug] [Thread-3 (]: Writing injected SQL for node "model.olist_pipeline.mart_ml_results"
+[0m14:47:51.936119 [debug] [Thread-3 (]: Began executing node model.olist_pipeline.mart_ml_results
+[0m14:47:52.072708 [debug] [Thread-3 (]: Writing runtime sql for node "model.olist_pipeline.mart_ml_results"
+[0m14:47:52.139297 [debug] [Thread-3 (]: Using snowflake connection "model.olist_pipeline.mart_ml_results"
+[0m14:47:52.145988 [debug] [Thread-3 (]: On model.olist_pipeline.mart_ml_results: /* {"app": "dbt", "dbt_version": "1.12.0", "profile_name": "olist_pipeline", "target_name": "dev", "node_id": "model.olist_pipeline.mart_ml_results"} */
+create or replace transient table PROJETO_OLIST_DB.ANALYTICS.mart_ml_results
+         as
+        (-- Predições do conjunto de teste (hard-code vs. sklearn) prontas para o dashboard e para a
+-- análise de acertos/erros pedida na avaliação qualitativa (docs/avaliacao.md).
+
+with predictions as (
+    select * from PROJETO_OLIST_DB.ANALYTICS.stg_ml_predictions
+),
+
+orders as (
+    select * from PROJETO_OLIST_DB.ANALYTICS.fact_orders
+),
+
+customers as (
+    select * from PROJETO_OLIST_DB.ANALYTICS.dim_customers
+)
+
+select
+    predictions.order_id,
+    predictions.true_label,
+    predictions.predicted_label_hardcode,
+    predictions.predicted_label_sklearn,
+    predictions.model_version,
+    predictions.predicted_at,
+    (predictions.true_label = predictions.predicted_label_hardcode) as hardcode_correct,
+    (predictions.true_label = predictions.predicted_label_sklearn) as sklearn_correct,
+    customers.state as customer_state
+from predictions
+left join orders on predictions.order_id = orders.order_id
+left join customers on orders.customer_key = customers.customer_key
+        );
+[0m14:47:52.161520 [debug] [Thread-3 (]: Opening a new connection, currently in state init
+[0m14:47:55.842432 [debug] [Thread-3 (]: SQL status: SUCCESS 1 in 3.681 seconds
+[0m14:47:55.852933 [debug] [Thread-3 (]: On model.olist_pipeline.mart_ml_results: Close
+[0m14:47:56.382685 [debug] [Thread-3 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': '6075a182-f4a6-4f21-a599-2260d3e18157', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x79eea0683490>]}
+[0m14:47:56.390060 [info ] [Thread-3 (]: 2 of 2 OK created sql table model ANALYTICS.mart_ml_results .................... [[32mSUCCESS 1[0m in 4.51s]
+[0m14:47:56.394764 [debug] [Thread-3 (]: Finished running node model.olist_pipeline.mart_ml_results
+[0m14:47:56.414281 [debug] [MainThread]: Connection 'master' was properly closed.
+[0m14:47:56.421882 [debug] [MainThread]: Connection 'model.olist_pipeline.stg_ml_predictions' was properly closed.
+[0m14:47:56.424614 [debug] [MainThread]: Connection 'model.olist_pipeline.mart_ml_results' was properly closed.
+[0m14:47:56.427267 [info ] [MainThread]: 
+[0m14:47:56.430320 [info ] [MainThread]: Finished running 1 table model, 1 view model in 0 hours 0 minutes and 12.36 seconds (12.36s).
+[0m14:47:56.435438 [debug] [MainThread]: Command end result
+[0m14:47:56.744801 [debug] [MainThread]: Wrote artifact WritableManifest to /opt/airflow/project/dbt/olist_pipeline/target/manifest.json
+[0m14:47:56.769708 [debug] [MainThread]: Wrote artifact SemanticManifest to /opt/airflow/project/dbt/olist_pipeline/target/semantic_manifest.json
+[0m14:47:56.788208 [debug] [MainThread]: Wrote artifact OsiDocument to /opt/airflow/project/dbt/olist_pipeline/target/osi_document.json
+[0m14:47:56.850445 [debug] [MainThread]: Wrote artifact RunExecutionResult to /opt/airflow/project/dbt/olist_pipeline/target/run_results.json
+[0m14:47:56.874027 [info ] [MainThread]: 
+[0m14:47:56.883976 [info ] [MainThread]: [32mCompleted successfully[0m
+[0m14:47:56.886606 [info ] [MainThread]: 
+[0m14:47:56.889431 [info ] [MainThread]: Done. PASS=2 WARN=0 ERROR=0 SKIP=0 NO-OP=0 REUSED=0 TOTAL=2
+[0m14:47:56.894775 [debug] [MainThread]: Resource report: {"command_name": "run", "command_success": true, "command_wall_clock_time": 17.101248, "process_in_blocks": "0", "process_kernel_time": 1.586801, "process_mem_max_rss": "181564", "process_out_blocks": "24", "process_user_time": 9.894684}
+[0m14:47:56.901794 [debug] [MainThread]: Command `dbt run` succeeded at 14:47:56.901367 after 17.11 seconds
+[0m14:47:56.907812 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x79eea7880f50>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x79eea4629e50>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x79eea461ca10>]}
+[0m14:47:56.910297 [debug] [MainThread]: Flushing usage events
+[0m14:47:57.755914 [debug] [MainThread]: An error was encountered while trying to flush usage events
