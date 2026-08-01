@@ -46,13 +46,18 @@ def upload_bronze(raw_dir: Path = PROJECT_ROOT / "data" / "raw") -> list[str]:
 
 
 def upload_silver(processed_dir: Path = PROJECT_ROOT / "data" / "processed") -> list[str]:
+    # Sem partição por dt=: RAW.SALES/RAW.REVIEWS no Snowflake sao truncadas e recarregadas por
+    # inteiro a cada execucao (ver 03_copy_into.sql), entao o silver representa so o snapshot
+    # mais recente. Particionar por data aqui deixava pastas dt= antigas paradas no bucket, e o
+    # COPY INTO (que varre @SILVER_STAGE/sales/ inteiro) carregava todas juntas, duplicando cada
+    # linha uma vez por dia em que o pipeline ja rodou.
     client = _s3_client()
     uploaded = []
     for name in ["sales.csv", "reviews.csv"]:
         path = processed_dir / name
         if not path.exists():
             continue
-        key = f"{_partition('silver/' + path.stem)}/{path.name}"
+        key = f"silver/{path.stem}/{path.name}"
         client.upload_file(str(path), BUCKET, key)
         uploaded.append(key)
         print(f"silver: s3://{BUCKET}/{key}")
@@ -60,8 +65,10 @@ def upload_silver(processed_dir: Path = PROJECT_ROOT / "data" / "processed") -> 
 
 
 def upload_predictions(file_path: Path) -> str:
+    # Mesmo motivo do upload_silver: chave estavel, sobrescrita a cada run, para nao acumular
+    # pastas dt= antigas que o COPY INTO de 05_copy_predictions.sql recarregaria duplicadas.
     client = _s3_client()
-    key = f"{_partition('silver/ml_predictions')}/{file_path.name}"
+    key = f"silver/ml_predictions/{file_path.name}"
     client.upload_file(str(file_path), BUCKET, key)
     print(f"predictions: s3://{BUCKET}/{key}")
     return key
