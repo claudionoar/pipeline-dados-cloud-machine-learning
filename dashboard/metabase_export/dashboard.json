@@ -1,0 +1,191 @@
+{
+  "name": "Risco de Atraso na Entrega - Apoio a Decisao",
+  "description": null,
+  "parameters": [
+    {
+      "id": "customer_state_filter",
+      "name": "Customer State",
+      "slug": "customer_state",
+      "type": "string/=",
+      "sectionId": "string"
+    }
+  ],
+  "dashcards": [
+    {
+      "card_id": 27,
+      "card_name": "Card 1: Total de Pedidos Entregues",
+      "row": 0,
+      "col": 0,
+      "size_x": 6,
+      "size_y": 3,
+      "parameter_mappings": [
+        {
+          "parameter_id": "customer_state_filter",
+          "card_id": 27,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "customer_state"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "card_id": 28,
+      "card_name": "Card 2: Taxa de Atraso Logistico (%)",
+      "row": 0,
+      "col": 6,
+      "size_x": 6,
+      "size_y": 3,
+      "parameter_mappings": [
+        {
+          "parameter_id": "customer_state_filter",
+          "card_id": 28,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "customer_state"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "card_id": 29,
+      "card_name": "Card 3: Prazo Medio Real (Dias)",
+      "row": 0,
+      "col": 12,
+      "size_x": 6,
+      "size_y": 3,
+      "parameter_mappings": [
+        {
+          "parameter_id": "customer_state_filter",
+          "card_id": 29,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "customer_state"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "card_id": 30,
+      "card_name": "Card 4: Prazo Medio Estimado (Dias)",
+      "row": 0,
+      "col": 18,
+      "size_x": 6,
+      "size_y": 3,
+      "parameter_mappings": [
+        {
+          "parameter_id": "customer_state_filter",
+          "card_id": 30,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "customer_state"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "card_id": 31,
+      "card_name": "Grafico 5: Taxa de Atraso por Estado do Cliente",
+      "row": 3,
+      "col": 0,
+      "size_x": 12,
+      "size_y": 7,
+      "parameter_mappings": [
+        {
+          "parameter_id": "customer_state_filter",
+          "card_id": 31,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "customer_state"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "card_id": 32,
+      "card_name": "Grafico 6: Sentimento do Cliente por Categoria de Produto",
+      "row": 3,
+      "col": 12,
+      "size_x": 12,
+      "size_y": 7,
+      "parameter_mappings": [
+        {
+          "parameter_id": "customer_state_filter",
+          "card_id": 32,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "customer_state"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "card_id": 33,
+      "card_name": "Grafico 7: Comparacao de Metricas do ML no Teste",
+      "row": 10,
+      "col": 0,
+      "size_x": 12,
+      "size_y": 7,
+      "parameter_mappings": [
+        {
+          "parameter_id": "customer_state_filter",
+          "card_id": 33,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "customer_state"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    },
+    {
+      "card_id": 34,
+      "card_name": "Tabela 8: Detalhes de Erro de ML (Analise Qualitativa)",
+      "row": 10,
+      "col": 12,
+      "size_x": 12,
+      "size_y": 7,
+      "parameter_mappings": [
+        {
+          "parameter_id": "customer_state_filter",
+          "card_id": 34,
+          "target": [
+            "variable",
+            [
+              "template-tag",
+              "customer_state"
+            ]
+          ]
+        }
+      ],
+      "visualization_settings": {}
+    }
+  ]
+}

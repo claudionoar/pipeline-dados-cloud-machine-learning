@@ -1,0 +1,271 @@
+[
+  {
+    "id": 27,
+    "name": "Card 1: Total de Pedidos Entregues",
+    "display": "scalar",
+    "dataset_query": {
+      "database": 2,
+      "type": "native",
+      "native": {
+        "template-tags": {
+          "customer_state": {
+            "type": "dimension",
+            "name": "customer_state",
+            "id": "de87d864-dc02-4237-9343-c333eea15190",
+            "display-name": "Customer State",
+            "default": null,
+            "dimension": [
+              "field",
+              148,
+              null
+            ],
+            "widget-type": "string/contains",
+            "options": {
+              "case-sensitive": false
+            }
+          }
+        },
+        "query": "SELECT SUM(order_count) AS total_pedidos FROM ANALYTICS.mart_delivery_kpis WHERE 1=1 [[AND {{customer_state}}]]"
+      }
+    },
+    "visualization_settings": {},
+    "description": null
+  },
+  {
+    "id": 28,
+    "name": "Card 2: Taxa de Atraso Logistico (%)",
+    "display": "table",
+    "dataset_query": {
+      "database": 2,
+      "type": "native",
+      "native": {
+        "template-tags": {
+          "customer_state": {
+            "type": "dimension",
+            "name": "customer_state",
+            "id": "1625cb09-c691-4d31-81a7-eaeec9257216",
+            "display-name": "Customer State",
+            "default": null,
+            "dimension": [
+              "field",
+              148,
+              null
+            ],
+            "widget-type": "string/contains",
+            "options": {
+              "case-sensitive": false
+            }
+          }
+        },
+        "query": "SELECT SUM(order_count) AS total_pedidos, SUM(late_count) AS total_atrasados, (SUM(late_count) / NULLIF(SUM(order_count), 0)::FLOAT) * 100 AS pct_atraso FROM ANALYTICS.mart_delivery_kpis WHERE 1=1 [[AND customer_state = {{customer_state}}]]"
+      }
+    },
+    "visualization_settings": {
+      "table.pivot_column": "TOTAL_PEDIDOS",
+      "table.cell_column": "TOTAL_ATRASADOS"
+    },
+    "description": null
+  },
+  {
+    "id": 29,
+    "name": "Card 3: Prazo Medio Real (Dias)",
+    "display": "scalar",
+    "dataset_query": {
+      "database": 2,
+      "type": "native",
+      "native": {
+        "template-tags": {
+          "customer_state": {
+            "type": "dimension",
+            "name": "customer_state",
+            "id": "c1d23ad7-28c5-450f-95ac-92ea85c02200",
+            "display-name": "Customer State",
+            "default": null,
+            "dimension": [
+              "field",
+              148,
+              null
+            ],
+            "widget-type": "string/contains",
+            "options": {
+              "case-sensitive": false
+            }
+          }
+        },
+        "query": "SELECT AVG(avg_delivery_days) AS prazo_medio_real FROM ANALYTICS.mart_delivery_kpis WHERE 1=1 [[AND customer_state = {{customer_state}}]]"
+      }
+    },
+    "visualization_settings": {},
+    "description": null
+  },
+  {
+    "id": 30,
+    "name": "Card 4: Prazo Medio Estimado (Dias)",
+    "display": "scalar",
+    "dataset_query": {
+      "database": 2,
+      "type": "native",
+      "native": {
+        "template-tags": {
+          "customer_state": {
+            "type": "dimension",
+            "name": "customer_state",
+            "id": "d9deeee7-8645-4ce7-87da-873aec6e5b80",
+            "display-name": "Customer State",
+            "default": null,
+            "dimension": [
+              "field",
+              148,
+              null
+            ],
+            "widget-type": "string/contains",
+            "options": {
+              "case-sensitive": false
+            }
+          }
+        },
+        "query": "SELECT AVG(avg_estimated_delivery_days) AS prazo_medio_estimado FROM ANALYTICS.mart_delivery_kpis WHERE 1=1 [[AND customer_state = {{customer_state}}]]"
+      }
+    },
+    "visualization_settings": {},
+    "description": null
+  },
+  {
+    "id": 31,
+    "name": "Grafico 5: Taxa de Atraso por Estado do Cliente",
+    "display": "bar",
+    "dataset_query": {
+      "database": 2,
+      "type": "native",
+      "native": {
+        "template-tags": {
+          "customer_state": {
+            "type": "dimension",
+            "name": "customer_state",
+            "id": "9e26b754-0259-4c7e-8663-77dd43a44eea",
+            "display-name": "Customer State",
+            "default": null,
+            "dimension": [
+              "field",
+              148,
+              null
+            ],
+            "widget-type": "string/contains",
+            "options": {
+              "case-sensitive": false
+            }
+          }
+        },
+        "query": "SELECT customer_state AS estado, pct_late * 100 AS taxa_atraso_percentual, order_count AS volume_pedidos\nFROM ANALYTICS.mart_delivery_kpis\nWHERE 1=1\n  [[AND customer_state = {{customer_state}}]]\n  ORDER BY pct_late DESC"
+      }
+    },
+    "visualization_settings": {
+      "graph.dimensions": [
+        "ESTADO"
+      ],
+      "graph.metrics": [
+        "TAXA_ATRASO_PERCENTUAL",
+        "VOLUME_PEDIDOS"
+      ]
+    },
+    "description": null
+  },
+  {
+    "id": 32,
+    "name": "Grafico 6: Sentimento do Cliente por Categoria de Produto",
+    "display": "row",
+    "dataset_query": {
+      "database": 2,
+      "type": "native",
+      "native": {
+        "template-tags": {
+          "customer_state": {
+            "type": "dimension",
+            "name": "customer_state",
+            "id": "53940a2b-60c6-4699-81cb-6110d4679742",
+            "display-name": "Customer State",
+            "default": null,
+            "dimension": [
+              "field",
+              73,
+              null
+            ],
+            "widget-type": "string/contains",
+            "options": {
+              "case-sensitive": false
+            }
+          }
+        },
+        "query": "SELECT p.category_name_english AS categoria,\nCOUNT(r.review_key) AS total_reviews,\n(SUM(CASE WHEN r.sentiment_label = 'positive' THEN 1 ELSE 0 END) / NULLIF(COUNT(r.review_key), 0)::FLOAT) * 100 AS pct_positivo,\n(SUM(CASE WHEN r.sentiment_label = 'neutral' THEN 1 ELSE 0 END) / NULLIF(COUNT(r.review_key), 0)::FLOAT) * 100 AS pct_neutro,\n(SUM(CASE WHEN r.sentiment_label = 'negative' THEN 1 ELSE 0 END) / NULLIF(COUNT(r.review_key), 0)::FLOAT) * 100 AS pct_negativo\nFROM ANALYTICS.fact_reviews r\nLEFT JOIN (SELECT order_id, product_key FROM ANALYTICS.fact_order_items QUALIFY ROW_NUMBER() OVER (PARTITION BY order_id ORDER BY order_item_id) = 1) pi ON r.order_id = pi.order_id\nLEFT JOIN ANALYTICS.dim_products p ON pi.product_key = p.product_key\nLEFT JOIN ANALYTICS.fact_orders o ON r.order_id = o.order_id\nLEFT JOIN ANALYTICS.dim_customers c ON o.customer_key = c.customer_key\nWHERE p.category_name_english IS NOT NULL\n  [[AND c.state = {{customer_state}}]]\n  GROUP BY p.category_name_english\n  ORDER BY total_reviews DESC\n  LIMIT 15"
+      }
+    },
+    "visualization_settings": {
+      "graph.dimensions": [
+        "CATEGORIA"
+      ],
+      "stackable.stack_type": "normalized",
+      "graph.metrics": [
+        "PCT_POSITIVO",
+        "PCT_NEUTRO",
+        "PCT_NEGATIVO"
+      ]
+    },
+    "description": null
+  },
+  {
+    "id": 33,
+    "name": "Grafico 7: Comparacao de Metricas do ML no Teste",
+    "display": "bar",
+    "dataset_query": {
+      "database": 2,
+      "type": "native",
+      "native": {
+        "query": "WITH metrics_hardcode AS (\n    SELECT\n        'Regressao Logistica (Numpy Scratch)' AS modelo,\n        SUM(CASE WHEN true_label = predicted_label_hardcode THEN 1.0 ELSE 0.0 END) / COUNT(*) AS accuracy,\n        SUM(CASE WHEN true_label = 'late' AND predicted_label_hardcode = 'late' THEN 1.0 ELSE 0.0 END) \n            / NULLIF(SUM(CASE WHEN true_label = 'late' THEN 1.0 ELSE 0.0 END), 0) AS recall_late,\n        SUM(CASE WHEN true_label = 'late' AND predicted_label_hardcode = 'late' THEN 1.0 ELSE 0.0 END) \n            / NULLIF(SUM(CASE WHEN predicted_label_hardcode = 'late' THEN 1.0 ELSE 0.0 END), 0) AS precision_late\n    FROM ANALYTICS.mart_ml_results\n    WHERE 1=1\n      [[AND customer_state = {{customer_state}}]]\n),\nmetrics_sklearn AS (\n    SELECT\n        'Regressao Logistica (Scikit-Learn)' AS modelo,\n        SUM(CASE WHEN true_label = predicted_label_sklearn THEN 1.0 ELSE 0.0 END) / COUNT(*) AS accuracy,\n        SUM(CASE WHEN true_label = 'late' AND predicted_label_sklearn = 'late' THEN 1.0 ELSE 0.0 END) \n            / NULLIF(SUM(CASE WHEN true_label = 'late' THEN 1.0 ELSE 0.0 END), 0) AS recall_late,\n        SUM(CASE WHEN true_label = 'late' AND predicted_label_sklearn = 'late' THEN 1.0 ELSE 0.0 END) \n            / NULLIF(SUM(CASE WHEN predicted_label_sklearn = 'late' THEN 1.0 ELSE 0.0 END), 0) AS precision_late\n    FROM ANALYTICS.mart_ml_results\n    WHERE 1=1\n      [[AND customer_state = {{customer_state}}]]\n),\nmetrics_baseline AS (\n    SELECT\n        'Baseline (Majority Class)' AS modelo,\n        SUM(CASE WHEN true_label = 'on_time' THEN 1.0 ELSE 0.0 END) / COUNT(*) AS accuracy,\n        0.0 AS recall_late,\n        0.0 AS precision_late\n    FROM ANALYTICS.mart_ml_results\n    WHERE 1=1\n      [[AND customer_state = {{customer_state}}]]\n),\nconsolidated AS (\n    SELECT * FROM metrics_hardcode\n    UNION ALL\n    SELECT * FROM metrics_sklearn\n    UNION ALL\n    SELECT * FROM metrics_baseline\n)\nSELECT\n    modelo,\n    accuracy * 100 AS acuracia_pct,\n    recall_late * 100 AS recall_atraso_pct,\n    precision_late * 100 AS precisao_atraso_pct,\n    COALESCE((2 * (precision_late * recall_late) / NULLIF(precision_late + recall_late, 0)) * 100, 0) AS f1_atraso_pct\nFROM consolidated",
+        "template-tags": {
+          "customer_state": {
+            "id": "customer_state",
+            "name": "customer_state",
+            "display-name": "Customer State",
+            "type": "text"
+          }
+        }
+      }
+    },
+    "visualization_settings": {
+      "graph.dimensions": [
+        "MODELO"
+      ],
+      "graph.y_axis.title_text": "Percentual (%)",
+      "graph.x_axis.title_text": "Modelo",
+      "graph.metrics": [
+        "ACURACIA_PCT",
+        "RECALL_ATRASO_PCT",
+        "PRECISAO_ATRASO_PCT",
+        "F1_ATRASO_PCT"
+      ]
+    },
+    "description": null
+  },
+  {
+    "id": 34,
+    "name": "Tabela 8: Detalhes de Erro de ML (Analise Qualitativa)",
+    "display": "table",
+    "dataset_query": {
+      "database": 2,
+      "type": "native",
+      "native": {
+        "query": "SELECT \n    order_id AS id_pedido,\n    customer_state AS estado_cliente,\n    true_label AS status_real,\n    predicted_label_hardcode AS predicao_numpy,\n    predicted_label_sklearn AS predicao_sklearn,\n    predicted_at AS data_previsao\nFROM ANALYTICS.mart_ml_results\nWHERE sklearn_correct = FALSE\n  [[AND customer_state = {{customer_state}}]]\nORDER BY predicted_at DESC\nLIMIT 20",
+        "template-tags": {
+          "customer_state": {
+            "id": "customer_state",
+            "name": "customer_state",
+            "display-name": "Customer State",
+            "type": "text"
+          }
+        }
+      }
+    },
+    "visualization_settings": {},
+    "description": null
+  }
+]

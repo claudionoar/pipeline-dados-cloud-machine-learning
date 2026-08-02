@@ -1,8 +1,18 @@
 # dashboard/ — Visualização (Metabase)
 
 O Metabase sobe junto com o resto do stack via `docker compose up` (raiz do projeto) —
-ver serviços `metabase` e `metabase-db` no `docker-compose.yml`. Acesse depois em
-http://localhost:3000.
+ver serviços `metabase` e `metabase-db` no `docker-compose.yml`.
+
+## Acesso Rápido ao Dashboard
+
+| Item | Valor |
+|---|---|
+| **Dashboard** | http://localhost:3000/dashboard/2 |
+| **E-mail** | `admin@example.com` |
+| **Senha** | `Admin123456!` |
+
+> Após subir os containers com `docker compose up -d`, aguarde ~30 segundos para o Metabase
+> inicializar e acesse o link acima diretamente no navegador.
 
 ## Conexão com o Snowflake (passo manual, primeira vez)
 
@@ -37,8 +47,28 @@ onde `pct_late` está mais alto com `order_count` relevante (não apenas 1-2 ped
 prioriza essas regiões/rotas para intervenção proativa (troca de transportadora, aviso ao
 cliente) — a decisão descrita em `docs/problema.md`.
 
-## Exportando o dashboard para o repositório
+## Exportando / Importando o dashboard
 
-Depois de montado, exporte a definição (Admin → ... → Export) ou tire prints das telas e
-salve em `dashboard/evidencias/` (crie a pasta) para anexar ao relatório/apresentação
+A configuração completa do dashboard (cards, queries SQL, layout e filtro global) está
+versionada em `dashboard/metabase_export/`:
+
+| Arquivo | Conteúdo |
+|---|---|
+| `cards.json` | 8 cards com queries SQL, tipo de visualização e configurações |
+| `dashboard.json` | Layout (posição/tamanho de cada card), filtro global e mapeamentos |
+| `database_connection.json` | Configuração da conexão Snowflake (sem senha) |
+
+### Reimportando em uma nova instância do Metabase
+
+1. Suba o stack: `docker compose up -d`
+2. Complete o setup inicial do Metabase (crie o admin e conecte o Snowflake)
+3. Execute o script de importação:
+   ```bash
+   python dashboard/import_metabase.py
+   ```
+   O script recria automaticamente todos os 8 cards e o dashboard com o layout original.
+
+### Evidências (prints)
+
+Screenshots do dashboard estão em `dashboard/evidencias/` para anexar ao relatório
 (entregável 6.1: "evidências de execução, como prints, logs ou exemplos de saída").
