@@ -110,6 +110,33 @@ services:
       - metabase-db
     restart: unless-stopped
 
+  # Job one-shot: espera o Metabase subir e provisiona admin + conexão Snowflake +
+  # dashboard/cards automaticamente (ver dashboard/setup_metabase.py). Roda uma vez a
+  # cada "docker compose up" e sai; é idempotente (reaproveita o que já existir).
+  metabase-setup:
+    image: python:3.11-slim
+    working_dir: /dashboard
+    volumes:
+      - ./dashboard:/dashboard
+    environment:
+      METABASE_URL: http://metabase:3000/api
+      METABASE_ADMIN_EMAIL: ${METABASE_ADMIN_EMAIL:-admin@example.com}
+      METABASE_ADMIN_PASSWORD: ${METABASE_ADMIN_PASSWORD:-Admin123456!}
+      METABASE_ADMIN_FIRSTNAME: ${METABASE_ADMIN_FIRSTNAME:-Admin}
+      METABASE_ADMIN_LASTNAME: ${METABASE_ADMIN_LASTNAME:-User}
+      METABASE_SITE_NAME: ${METABASE_SITE_NAME:-Olist}
+      SNOWFLAKE_ACCOUNT: ${SNOWFLAKE_ACCOUNT:-}
+      SNOWFLAKE_USER: ${SNOWFLAKE_USER:-}
+      SNOWFLAKE_PASSWORD: ${SNOWFLAKE_PASSWORD:-}
+      SNOWFLAKE_ROLE: ${SNOWFLAKE_ROLE:-}
+      SNOWFLAKE_WAREHOUSE: ${SNOWFLAKE_WAREHOUSE:-}
+      SNOWFLAKE_DATABASE: ${SNOWFLAKE_DATABASE:-}
+      SNOWFLAKE_SCHEMA: ${SNOWFLAKE_SCHEMA:-ANALYTICS}
+    command: sh -c "pip install --quiet --no-cache-dir -r requirements.txt && python setup_metabase.py"
+    depends_on:
+      - metabase
+    restart: "no"
+
 volumes:
   airflow_postgres_data:
   metabase_postgres_data:

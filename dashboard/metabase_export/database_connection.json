@@ -2,11 +2,12 @@
   "name": "Snowflake Olist",
   "engine": "snowflake",
   "details": {
-    "account": "$SNOWFLAKE_ACCOUNT",
-    "db": "$SNOWFLAKE_DATABASE",
-    "warehouse": "$SNOWFLAKE_USER",
-    "role": "$SNOWFLAKE_ROLE",
-    "schema-filters-type": "all",
-    "schema-filters-patterns": null
+    "account": "${SNOWFLAKE_ACCOUNT}",
+    "user": "${SNOWFLAKE_USER}",
+    "db": "${SNOWFLAKE_DATABASE}",
+    "warehouse": "${SNOWFLAKE_WAREHOUSE}",
+    "role": "${SNOWFLAKE_ROLE}",
+    "schema-filters-type": "inclusion",
+    "schema-filters-patterns": "${SNOWFLAKE_SCHEMA}"
   }
 }
