@@ -1,12 +1,16 @@
-with source as (
-    select * from {{ source('raw', 'ml_predictions') }}
+-- Camada STAGING de raw.ml_predictions
+ 
+-- {{ config(materialized='view') }}
+
+WITH source AS (
+    select * FROM {{ source('raw', 'ml_predictions') }}
 )
 
-select
+SELECT
     order_id,
     true_label,
     predicted_label_hardcode,
     predicted_label_sklearn,
     model_version,
     predicted_at
-from source
+FROM source

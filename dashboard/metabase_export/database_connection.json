@@ -2,10 +2,10 @@
   "name": "Snowflake Olist",
   "engine": "snowflake",
   "details": {
-    "account": "SFEDU02-GFB24387",
-    "db": "PROJETO_OLIST_DB",
-    "warehouse": "FERRET_WH",
-    "role": "TRAINING_ROLE",
+    "account": "$SNOWFLAKE_ACCOUNT",
+    "db": "$SNOWFLAKE_DATABASE",
+    "warehouse": "$SNOWFLAKE_USER",
+    "role": "$SNOWFLAKE_ROLE",
     "schema-filters-type": "all",
     "schema-filters-patterns": null
   }
