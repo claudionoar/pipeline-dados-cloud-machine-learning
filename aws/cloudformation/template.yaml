@@ -1,0 +1,407 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  Arquitetura equivalente 100% AWS para o pipeline Olist Brazilian E-Commerce.
+  Provisiona de forma integrada e otimizada por custo: S3 Data Lake, AWS Glue,
+  VPC Basica (sem NAT Gateway para evitar custos fixos desnecessarios),
+  recursos opcionais para Redshift Serverless, Amazon SageMaker e uma instancia
+  Amazon EC2 rodando dbt Core.
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: olist-pipeline
+    Description: Prefixo usado no nome dos recursos.
+
+  BucketSuffix:
+    Type: String
+    Description: Sufixo unico para o nome do bucket S3 (nomes de bucket sao globais na AWS).
+
+  EnableRedshift:
+    Type: String
+    Default: 'false'
+    AllowedValues: ['true', 'false']
+    Description: Habilitar o provisionamento do Amazon Redshift Serverless (gera custos).
+
+  EnableSageMaker:
+    Type: String
+    Default: 'false'
+    AllowedValues: ['true', 'false']
+    Description: Habilitar o provisionamento do Amazon SageMaker Notebook (gera custos).
+
+  EnableEC2:
+    Type: String
+    Default: 'false'
+    AllowedValues: ['true', 'false']
+    Description: Habilitar o provisionamento da instancia EC2 para executar o dbt (gera custos).
+
+  RedshiftAdminUsername:
+    Type: String
+    Default: admin
+    Description: Usuario administrador do Redshift Serverless.
+
+  RedshiftAdminPassword:
+    Type: String
+    NoEcho: true
+    Default: ChangeMe123!
+    Description: Senha do usuario administrador do Redshift Serverless (minimo 8 caracteres, 1 maiuscula, 1 minuscula e 1 numero).
+
+  SageMakerInstanceType:
+    Type: String
+    Default: ml.t3.medium
+    Description: Tipo de instancia do Notebook do SageMaker.
+
+Conditions:
+  CreateRedshift: !Equals [ !Ref EnableRedshift, 'true' ]
+  CreateSageMaker: !Equals [ !Ref EnableSageMaker, 'true' ]
+  CreateEC2: !Equals [ !Ref EnableEC2, 'true' ]
+
+Resources:
+
+  # =====================================================================
+  # 1. INFRAESTRUTURA DE REDE (VPC E SUBNETS PARA REDSHIFT E EC2)
+  # Criada apenas para dar suporte ao Redshift Serverless e EC2 se ativados.
+  # VPC simples sem NAT Gateway para evitar cobrancas ociosas de ~US$ 30/mes.
+  # =====================================================================
+  Vpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-vpc"
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-igw"
+
+  VpcGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref Vpc
+      InternetGatewayId: !Ref InternetGateway
+
+  Subnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Vpc
+      CidrBlock: 10.0.1.0/24
+      AvailabilityZone: !Select [ 0, !GetAZs "" ]
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-subnet-1"
+
+  Subnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Vpc
+      CidrBlock: 10.0.2.0/24
+      AvailabilityZone: !Select [ 1, !GetAZs "" ]
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-subnet-2"
+
+  RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref Vpc
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-rt"
+
+  PublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: VpcGatewayAttachment
+    Properties:
+      RouteTableId: !Ref RouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  Subnet1Association:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref Subnet1
+      RouteTableId: !Ref RouteTable
+
+  Subnet2Association:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref Subnet2
+      RouteTableId: !Ref RouteTable
+
+  RedshiftSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Condition: CreateRedshift
+    Properties:
+      GroupDescription: Security Group para o Redshift Serverless
+      VpcId: !Ref Vpc
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5439
+          ToPort: 5439
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-redshift-sg"
+
+  DbtEc2SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Condition: CreateEC2
+    Properties:
+      GroupDescription: Security Group para a instancia EC2 do dbt
+      VpcId: !Ref Vpc
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-dbt-ec2-sg"
+
+  # =====================================================================
+  # 2. ARMAZENAMENTO E CATALOGAÇÃO (S3 E AWS GLUE)
+  # =====================================================================
+  DataLakeBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${ProjectName}-${BucketSuffix}"
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  DataLakeLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/${ProjectName}/pipeline"
+      RetentionInDays: 30
+
+  GlueServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${ProjectName}-glue-role"
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: glue.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole
+      Policies:
+        - PolicyName: s3-data-lake-access
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:ListBucket
+                  - s3:DeleteObject
+                Resource:
+                  - !GetAtt DataLakeBucket.Arn
+                  - !Sub "${DataLakeBucket.Arn}/*"
+
+  GlueDatabase:
+    Type: AWS::Glue::Database
+    Properties:
+      CatalogId: !Ref AWS::AccountId
+      DatabaseInput:
+        Name: !Sub "${ProjectName}_catalog"
+        Description: "Catalogo dos dados brutos/tratados do pipeline Olist Brazilian E-Commerce"
+
+  BronzeCrawler:
+    Type: AWS::Glue::Crawler
+    Properties:
+      Name: !Sub "${ProjectName}-bronze-crawler"
+      Role: !GetAtt GlueServiceRole.Arn
+      DatabaseName: !Ref GlueDatabase
+      Targets:
+        S3Targets:
+          - Path: !Sub "s3://${DataLakeBucket}/bronze/"
+      Schedule:
+        ScheduleExpression: "cron(0 6 * * ? *)"
+      SchemaChangePolicy:
+        UpdateBehavior: UPDATE_IN_DATABASE
+        DeleteBehavior: LOG
+
+  ProcessingGlueJob:
+    Type: AWS::Glue::Job
+    Properties:
+      Name: !Sub "${ProjectName}-bronze-to-silver"
+      Role: !GetAtt GlueServiceRole.Arn
+      GlueVersion: "4.0"
+      Command:
+        Name: glueetl
+        PythonVersion: "3"
+        ScriptLocation: !Sub "s3://${DataLakeBucket}/scripts/bronze_to_silver.py"
+      DefaultArguments:
+        "--TempDir": !Sub "s3://${DataLakeBucket}/tmp/"
+        "--job-language": "python"
+      MaxRetries: 1
+      NumberOfWorkers: 2
+      WorkerType: G.1X
+      Timeout: 30
+
+  # =====================================================================
+  # 3. BASE ANALÍTICA (AMAZON REDSHIFT SERVERLESS) - CONDICIONAL
+  # =====================================================================
+  RedshiftNamespace:
+    Type: AWS::RedshiftServerless::Namespace
+    Condition: CreateRedshift
+    Properties:
+      NamespaceName: !Sub "${ProjectName}-ns"
+      DbName: analytics
+      AdminUsername: !Ref RedshiftAdminUsername
+      AdminUserPassword: !Ref RedshiftAdminPassword
+      IamRoles:
+        - !GetAtt GlueServiceRole.Arn
+
+  RedshiftWorkgroup:
+    Type: AWS::RedshiftServerless::Workgroup
+    Condition: CreateRedshift
+    DependsOn: RedshiftNamespace
+    Properties:
+      WorkgroupName: !Sub "${ProjectName}-wg"
+      NamespaceName: !Sub "${ProjectName}-ns"
+      BaseCapacity: 8
+      PubliclyAccessible: true
+      SubnetIds:
+        - !Ref Subnet1
+        - !Ref Subnet2
+      SecurityGroupIds:
+        - !Ref RedshiftSecurityGroup
+
+  # =====================================================================
+  # 4. MACHINE LEARNING (AMAZON SAGEMAKER) - CONDICIONAL
+  # =====================================================================
+  SageMakerExecutionRole:
+    Type: AWS::IAM::Role
+    Condition: CreateSageMaker
+    Properties:
+      RoleName: !Sub "${ProjectName}-sagemaker-role"
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: sagemaker.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSageMakerFullAccess
+      Policies:
+        - PolicyName: s3-data-lake-access
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:ListBucket
+                Resource:
+                  - !GetAtt DataLakeBucket.Arn
+                  - !Sub "${DataLakeBucket.Arn}/*"
+
+  SentimentModelNotebook:
+    Type: AWS::SageMaker::NotebookInstance
+    Condition: CreateSageMaker
+    Properties:
+      NotebookInstanceName: !Sub "${ProjectName}-sentiment-notebook"
+      InstanceType: !Ref SageMakerInstanceType
+      RoleArn: !GetAtt SageMakerExecutionRole.Arn
+
+  # =====================================================================
+  # 5. INSTANCIA EC2 PARA EXECUÇÃO DO dbt - CONDICIONAL
+  # =====================================================================
+  DbtEc2Role:
+    Type: AWS::IAM::Role
+    Condition: CreateEC2
+    Properties:
+      RoleName: !Sub "${ProjectName}-dbt-ec2-role"
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: dbt-ec2-s3-access
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:ListBucket
+                Resource:
+                  - !GetAtt DataLakeBucket.Arn
+                  - !Sub "${DataLakeBucket.Arn}/*"
+
+  DbtEc2InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Condition: CreateEC2
+    Properties:
+      Path: /
+      Roles:
+        - !Ref DbtEc2Role
+
+  DbtEc2Instance:
+    Type: AWS::EC2::Instance
+    Condition: CreateEC2
+    Properties:
+      InstanceType: t3.micro
+      ImageId: ami-0c7217cdde317cfec # Amazon Linux 2 AMI padrao
+      SubnetId: !Ref Subnet1
+      SecurityGroupIds:
+        - !Ref DbtEc2SecurityGroup
+      IamInstanceProfile: !Ref DbtEc2InstanceProfile
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-dbt-ec2"
+
+Outputs:
+  VpcId:
+    Description: ID da VPC provisionada
+    Value: !Ref Vpc
+
+  DataLakeBucketName:
+    Description: Bucket S3 com as camadas bronze/silver/gold
+    Value: !Ref DataLakeBucket
+
+  GlueDatabaseName:
+    Description: Database do Glue Data Catalog
+    Value: !Ref GlueDatabase
+
+  RedshiftWorkgroupEndpoint:
+    Condition: CreateRedshift
+    Description: Endpoint do Redshift Serverless (base analitica equivalente ao Snowflake)
+    Value: !GetAtt RedshiftWorkgroup.Workgroup.Endpoint.Address
+
+  SageMakerNotebookName:
+    Condition: CreateSageMaker
+    Description: Notebook instance do SageMaker (treino/experimentacao de ML)
+    Value: !Ref SentimentModelNotebook
+
+  DbtEc2InstancePublicIp:
+    Condition: CreateEC2
+    Description: IP publico da instancia EC2 do dbt
+    Value: !GetAtt DbtEc2Instance.PublicIp
