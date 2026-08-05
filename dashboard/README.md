@@ -7,23 +7,41 @@ ver serviços `metabase` e `metabase-db` no `docker-compose.yml`.
 
 | Item | Valor |
 |---|---|
-| **Dashboard** | http://localhost:3000/dashboard/2 |
+| **Metabase** | http://localhost:3000 |
 | **E-mail** | `admin@example.com` |
 | **Senha** | `Admin123456!` |
 
 > Após subir os containers com `docker compose up -d`, aguarde ~30 segundos para o Metabase
-> inicializar e acesse o link acima diretamente no navegador.
+> inicializar e o serviço `metabase-setup` terminar. O dashboard fica em **Our analytics**
+> (menu lateral) com o nome "Risco de Atraso na Entrega - Apoio a Decisao"; o link exato
+> (`/dashboard/<id>`) muda a cada resync (ver "Provisionamento automático" abaixo) e é
+> impresso ao final de `docker compose logs metabase-setup`.
 
-## Conexão com o Snowflake (passo manual, primeira vez)
+## Provisionamento automático (admin + Snowflake + dashboard)
 
-1. Abra http://localhost:3000 e complete o setup inicial do Metabase (cria o usuário admin).
-2. **Admin settings → Databases → Add a database**:
-   - Database type: `Snowflake`
-   - Account: valor de `SNOWFLAKE_ACCOUNT` (.env)
-   - User / Password / Role / Warehouse / Database: os mesmos do `.env`
-   - Schema filter: `ANALYTICS` (onde o dbt materializa os marts)
-3. Salve e aguarde o Metabase sincronizar o schema (ele lista `mart_delivery_kpis`,
-   `mart_sentiment_kpis`, `mart_ml_results`, `dim_customers`, `dim_products`, `fact_orders`).
+Tudo isso acontece sozinho ao rodar `docker compose up -d`: o serviço `metabase-setup`
+espera o Metabase ficar disponível, cria o usuário admin, conecta o Snowflake e importa
+os cards/dashboard — sem nenhum passo manual na UI. Ver `dashboard/setup_metabase.py`.
+
+- Credenciais do admin vêm de `METABASE_ADMIN_EMAIL` / `METABASE_ADMIN_PASSWORD` (.env,
+  raiz do projeto) — os valores padrão são os mesmos da tabela acima.
+- A conexão Snowflake usa `SNOWFLAKE_ACCOUNT/USER/PASSWORD/ROLE/WAREHOUSE/DATABASE/SCHEMA`
+  do mesmo `.env`, aplicados sobre o template `metabase_export/database_connection.json`
+  (placeholders `${VAR}`).
+- É idempotente sem duplicar: reaproveita o admin (login) e a conexão Snowflake se já
+  existirem. Já o dashboard/cards são sempre ressincronizados com o conteúdo atual de
+  `cards.json`/`dashboard.json` a cada execução (a versão antiga é arquivada e recriada) —
+  então editar esses JSONs e rodar `docker compose up -d metabase-setup` de novo já aplica
+  a mudança no Metabase.
+- Acompanhe o progresso com `docker compose logs -f metabase-setup`.
+
+Se preferir rodar fora do Docker (contra um Metabase já no ar em outra porta/host), defina
+`METABASE_URL` (ex.: `http://localhost:3000/api`) e execute manualmente:
+
+```bash
+pip install -r dashboard/requirements.txt
+python dashboard/setup_metabase.py
+```
 
 ## Cards / dashboard sugerido ("Risco de atraso na entrega — apoio à decisão")
 
@@ -60,13 +78,9 @@ versionada em `dashboard/metabase_export/`:
 
 ### Reimportando em uma nova instância do Metabase
 
-1. Suba o stack: `docker compose up -d`
-2. Complete o setup inicial do Metabase (crie o admin e conecte o Snowflake)
-3. Execute o script de importação:
-   ```bash
-   python dashboard/import_metabase.py
-   ```
-   O script recria automaticamente todos os 8 cards e o dashboard com o layout original.
+Basta subir o stack: `docker compose up -d`. O serviço `metabase-setup` cuida de tudo
+(admin, conexão Snowflake, os 8 cards e o dashboard com o layout original) — ver seção
+acima.
 
 ### Evidências (prints)
 

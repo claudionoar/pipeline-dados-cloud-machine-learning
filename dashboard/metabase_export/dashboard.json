@@ -3,9 +3,9 @@
   "description": null,
   "parameters": [
     {
-      "id": "customer_state_filter",
+      "id": "estado_filter",
       "name": "Customer State",
-      "slug": "customer_state",
+      "slug": "estado",
       "type": "string/=",
       "sectionId": "string"
     }
@@ -20,13 +20,13 @@
       "size_y": 3,
       "parameter_mappings": [
         {
-          "parameter_id": "customer_state_filter",
+          "parameter_id": "estado_filter",
           "card_id": 27,
           "target": [
             "variable",
             [
               "template-tag",
-              "customer_state"
+              "estado"
             ]
           ]
         }
@@ -42,13 +42,13 @@
       "size_y": 3,
       "parameter_mappings": [
         {
-          "parameter_id": "customer_state_filter",
+          "parameter_id": "estado_filter",
           "card_id": 28,
           "target": [
             "variable",
             [
               "template-tag",
-              "customer_state"
+              "estado"
             ]
           ]
         }
@@ -64,13 +64,13 @@
       "size_y": 3,
       "parameter_mappings": [
         {
-          "parameter_id": "customer_state_filter",
+          "parameter_id": "estado_filter",
           "card_id": 29,
           "target": [
             "variable",
             [
               "template-tag",
-              "customer_state"
+              "estado"
             ]
           ]
         }
@@ -86,13 +86,13 @@
       "size_y": 3,
       "parameter_mappings": [
         {
-          "parameter_id": "customer_state_filter",
+          "parameter_id": "estado_filter",
           "card_id": 30,
           "target": [
             "variable",
             [
               "template-tag",
-              "customer_state"
+              "estado"
             ]
           ]
         }
@@ -108,13 +108,13 @@
       "size_y": 7,
       "parameter_mappings": [
         {
-          "parameter_id": "customer_state_filter",
+          "parameter_id": "estado_filter",
           "card_id": 31,
           "target": [
             "variable",
             [
               "template-tag",
-              "customer_state"
+              "estado"
             ]
           ]
         }
@@ -130,13 +130,13 @@
       "size_y": 7,
       "parameter_mappings": [
         {
-          "parameter_id": "customer_state_filter",
+          "parameter_id": "estado_filter",
           "card_id": 32,
           "target": [
             "variable",
             [
               "template-tag",
-              "customer_state"
+              "estado"
             ]
           ]
         }
@@ -152,13 +152,13 @@
       "size_y": 7,
       "parameter_mappings": [
         {
-          "parameter_id": "customer_state_filter",
+          "parameter_id": "estado_filter",
           "card_id": 33,
           "target": [
             "variable",
             [
               "template-tag",
-              "customer_state"
+              "estado"
             ]
           ]
         }
@@ -174,13 +174,13 @@
       "size_y": 7,
       "parameter_mappings": [
         {
-          "parameter_id": "customer_state_filter",
+          "parameter_id": "estado_filter",
           "card_id": 34,
           "target": [
             "variable",
             [
               "template-tag",
-              "customer_state"
+              "estado"
             ]
           ]
         }
