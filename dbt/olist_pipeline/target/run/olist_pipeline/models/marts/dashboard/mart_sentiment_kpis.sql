@@ -10,34 +10,44 @@
 -- pedidos com vários itens de categorias diferentes (mesma simplificação documentada em
 -- mart_late_delivery_features para o vendedor "primário").
 
-with reviews as (
-    select * from PROJETO_OLIST_DB.ANALYTICS.fact_reviews
+-- CTE que carrega todas as avaliações da tabela fato fact_reviews
+WITH reviews AS (
+    SELECT * FROM PROJETO_OLIST_DB.ANALYTICS.fact_reviews
 ),
 
-primary_item as (
-    select order_id, product_key
-    from PROJETO_OLIST_DB.ANALYTICS.fact_order_items
-    qualify row_number() over (partition by order_id order by order_item_id) = 1
+-- CTE que seleciona apenas o primeiro item de cada pedido (menor order_item_id)
+-- para associar a review a um único produto/categoria
+primary_item AS (
+    SELECT order_id, product_key
+    FROM PROJETO_OLIST_DB.ANALYTICS.fact_order_items
+    QUALIFY ROW_NUMBER() OVER (PARTITION BY order_id ORDER BY order_item_id) = 1
 ),
 
-products as (
-    select * from PROJETO_OLIST_DB.ANALYTICS.dim_products
+-- CTE que carrega a dimensão de produtos (para obter a categoria em inglês)
+products AS (
+    SELECT * FROM PROJETO_OLIST_DB.ANALYTICS.dim_products
 )
 
-select
-    products.category_name_english,
-    count(reviews.review_key) as review_count,
-    avg(reviews.review_score) as avg_review_score,
-    sum(case when reviews.sentiment_label = 'positive' then 1 else 0 end)
-        / nullif(count(reviews.review_key), 0)::float as pct_positive,
-    sum(case when reviews.sentiment_label = 'neutral' then 1 else 0 end)
-        / nullif(count(reviews.review_key), 0)::float as pct_neutral,
-    sum(case when reviews.sentiment_label = 'negative' then 1 else 0 end)
-        / nullif(count(reviews.review_key), 0)::float as pct_negative
-from reviews
-left join primary_item on reviews.order_id = primary_item.order_id
-left join products on primary_item.product_key = products.product_key
-group by products.category_name_english
+-- Seleção final: agrega os KPIs de sentimento por categoria de produto
+SELECT
+    products.category_name_english,                     -- categoria do produto (em inglês) como dimensão de agrupamento
+    COUNT(reviews.review_key) AS review_count,          -- total de avaliações na categoria
+    AVG(reviews.review_score) AS avg_review_score,      -- nota média das avaliações na categoria
+    -- Proporção de avaliações positivas (nullif evita divisão por zero)
+    SUM(CASE WHEN reviews.sentiment_label = 'positivo' THEN 1 ELSE 0 END)
+        / NULLIF(COUNT(reviews.review_key), 0)::FLOAT AS pct_positivo,
+    -- Proporção de avaliações neutras
+    SUM(CASE WHEN reviews.sentiment_label = 'neutro' THEN 1 ELSE 0 END)
+        / NULLIF(COUNT(reviews.review_key), 0)::FLOAT AS pct_neutro,
+    -- Proporção de avaliações negativas
+    SUM(CASE WHEN reviews.sentiment_label = 'negativo' THEN 1 ELSE 0 END)
+        / NULLIF(COUNT(reviews.review_key), 0)::FLOAT AS pct_negativo
+FROM reviews
+-- LEFT JOIN traz o produto do primeiro item de cada pedido avaliado
+LEFT JOIN primary_item ON reviews.order_id = primary_item.order_id
+-- LEFT JOIN traz os atributos do produto (categoria)
+LEFT JOIN products ON primary_item.product_key = products.product_key
+GROUP BY products.category_name_english                 -- uma linha por categoria de produto
         );
       
   

@@ -61,7 +61,7 @@ models:
   - name: stg_order_reviews
     description: >
       Staging sobre raw.order_reviews, com sentiment_label derivado do review_score (>=4
-      positive, <=2 negative, senão neutral). Grão real: review_id + order_id - ~0,8% dos
+      positivo, <=2 negativo, senão neutro). Grão real: review_id + order_id - ~0,8% dos
       review_id do dataset Olist se repetem em pedidos (order_id) diferentes (limitação
       conhecida da fonte, não um bug do pipeline - ver docs/dicionario_dados.md).
     columns:
@@ -73,7 +73,7 @@ models:
           - not_null
           - accepted_values:
               arguments:
-                values: ['positive', 'neutral', 'negative']
+                values: ['positivo', 'neutro', 'negativo']
     tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:

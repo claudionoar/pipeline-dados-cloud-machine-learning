@@ -8,9 +8,9 @@
       "type": "native",
       "native": {
         "template-tags": {
-          "customer_state": {
+          "estado": {
             "type": "dimension",
-            "name": "customer_state",
+            "name": "estado",
             "id": "de87d864-dc02-4237-9343-c333eea15190",
             "display-name": "Customer State",
             "default": null,
@@ -25,7 +25,7 @@
             }
           }
         },
-        "query": "SELECT SUM(order_count) AS total_pedidos FROM ANALYTICS.mart_delivery_kpis WHERE 1=1 [[AND {{customer_state}}]]"
+        "query": "SELECT SUM(order_count) AS total_pedidos FROM ANALYTICS.mart_delivery_kpis WHERE 1=1 [[AND {{estado}}]]"
       }
     },
     "visualization_settings": {},
@@ -40,9 +40,9 @@
       "type": "native",
       "native": {
         "template-tags": {
-          "customer_state": {
+          "estado": {
             "type": "dimension",
-            "name": "customer_state",
+            "name": "estado",
             "id": "1625cb09-c691-4d31-81a7-eaeec9257216",
             "display-name": "Customer State",
             "default": null,
@@ -57,7 +57,7 @@
             }
           }
         },
-        "query": "SELECT SUM(order_count) AS total_pedidos, SUM(late_count) AS total_atrasados, (SUM(late_count) / NULLIF(SUM(order_count), 0)::FLOAT) * 100 AS pct_atraso FROM ANALYTICS.mart_delivery_kpis WHERE 1=1 [[AND customer_state = {{customer_state}}]]"
+        "query": "SELECT SUM(order_count) AS total_pedidos, SUM(late_count) AS total_atrasados, (SUM(late_count) / NULLIF(SUM(order_count), 0)::FLOAT) * 100 AS pct_atraso FROM ANALYTICS.mart_delivery_kpis WHERE 1=1 [[AND estado = {{estado}}]]"
       }
     },
     "visualization_settings": {
@@ -75,9 +75,9 @@
       "type": "native",
       "native": {
         "template-tags": {
-          "customer_state": {
+          "estado": {
             "type": "dimension",
-            "name": "customer_state",
+            "name": "estado",
             "id": "c1d23ad7-28c5-450f-95ac-92ea85c02200",
             "display-name": "Customer State",
             "default": null,
@@ -92,7 +92,7 @@
             }
           }
         },
-        "query": "SELECT AVG(avg_delivery_days) AS prazo_medio_real FROM ANALYTICS.mart_delivery_kpis WHERE 1=1 [[AND customer_state = {{customer_state}}]]"
+        "query": "SELECT AVG(avg_delivery_days) AS prazo_medio_real FROM ANALYTICS.mart_delivery_kpis WHERE 1=1 [[AND estado = {{estado}}]]"
       }
     },
     "visualization_settings": {},
@@ -107,9 +107,9 @@
       "type": "native",
       "native": {
         "template-tags": {
-          "customer_state": {
+          "estado": {
             "type": "dimension",
-            "name": "customer_state",
+            "name": "estado",
             "id": "d9deeee7-8645-4ce7-87da-873aec6e5b80",
             "display-name": "Customer State",
             "default": null,
@@ -124,7 +124,7 @@
             }
           }
         },
-        "query": "SELECT AVG(avg_estimated_delivery_days) AS prazo_medio_estimado FROM ANALYTICS.mart_delivery_kpis WHERE 1=1 [[AND customer_state = {{customer_state}}]]"
+        "query": "SELECT AVG(avg_estimated_delivery_days) AS prazo_medio_estimado FROM ANALYTICS.mart_delivery_kpis WHERE 1=1 [[AND estado = {{estado}}]]"
       }
     },
     "visualization_settings": {},
@@ -139,9 +139,9 @@
       "type": "native",
       "native": {
         "template-tags": {
-          "customer_state": {
+          "estado": {
             "type": "dimension",
-            "name": "customer_state",
+            "name": "estado",
             "id": "9e26b754-0259-4c7e-8663-77dd43a44eea",
             "display-name": "Customer State",
             "default": null,
@@ -156,7 +156,7 @@
             }
           }
         },
-        "query": "SELECT customer_state AS estado, pct_late * 100 AS taxa_atraso_percentual, order_count AS volume_pedidos\nFROM ANALYTICS.mart_delivery_kpis\nWHERE 1=1\n  [[AND customer_state = {{customer_state}}]]\n  ORDER BY pct_late DESC"
+        "query": "SELECT estado AS estado, pct_late * 100 AS taxa_atraso_percentual, order_count AS volume_pedidos\nFROM ANALYTICS.mart_delivery_kpis\nWHERE 1=1\n  [[AND estado = {{estado}}]]\n  ORDER BY pct_late DESC"
       }
     },
     "visualization_settings": {
@@ -179,9 +179,9 @@
       "type": "native",
       "native": {
         "template-tags": {
-          "customer_state": {
+          "estado": {
             "type": "dimension",
-            "name": "customer_state",
+            "name": "estado",
             "id": "53940a2b-60c6-4699-81cb-6110d4679742",
             "display-name": "Customer State",
             "default": null,
@@ -196,7 +196,7 @@
             }
           }
         },
-        "query": "SELECT p.category_name_english AS categoria,\nCOUNT(r.review_key) AS total_reviews,\n(SUM(CASE WHEN r.sentiment_label = 'positive' THEN 1 ELSE 0 END) / NULLIF(COUNT(r.review_key), 0)::FLOAT) * 100 AS pct_positivo,\n(SUM(CASE WHEN r.sentiment_label = 'neutral' THEN 1 ELSE 0 END) / NULLIF(COUNT(r.review_key), 0)::FLOAT) * 100 AS pct_neutro,\n(SUM(CASE WHEN r.sentiment_label = 'negative' THEN 1 ELSE 0 END) / NULLIF(COUNT(r.review_key), 0)::FLOAT) * 100 AS pct_negativo\nFROM ANALYTICS.fact_reviews r\nLEFT JOIN (SELECT order_id, product_key FROM ANALYTICS.fact_order_items QUALIFY ROW_NUMBER() OVER (PARTITION BY order_id ORDER BY order_item_id) = 1) pi ON r.order_id = pi.order_id\nLEFT JOIN ANALYTICS.dim_products p ON pi.product_key = p.product_key\nLEFT JOIN ANALYTICS.fact_orders o ON r.order_id = o.order_id\nLEFT JOIN ANALYTICS.dim_customers c ON o.customer_key = c.customer_key\nWHERE p.category_name_english IS NOT NULL\n  [[AND c.state = {{customer_state}}]]\n  GROUP BY p.category_name_english\n  ORDER BY total_reviews DESC\n  LIMIT 15"
+        "query": "SELECT p.category_name_english AS categoria,\nCOUNT(r.review_key) AS total_reviews,\n(SUM(CASE WHEN r.sentiment_label = 'positive' THEN 1 ELSE 0 END) / NULLIF(COUNT(r.review_key), 0)::FLOAT) * 100 AS pct_positivo,\n(SUM(CASE WHEN r.sentiment_label = 'neutral' THEN 1 ELSE 0 END) / NULLIF(COUNT(r.review_key), 0)::FLOAT) * 100 AS pct_neutro,\n(SUM(CASE WHEN r.sentiment_label = 'negative' THEN 1 ELSE 0 END) / NULLIF(COUNT(r.review_key), 0)::FLOAT) * 100 AS pct_negativo\nFROM ANALYTICS.fact_reviews r\nLEFT JOIN (SELECT order_id, product_key FROM ANALYTICS.fact_order_items QUALIFY ROW_NUMBER() OVER (PARTITION BY order_id ORDER BY order_item_id) = 1) pi ON r.order_id = pi.order_id\nLEFT JOIN ANALYTICS.dim_products p ON pi.product_key = p.product_key\nLEFT JOIN ANALYTICS.fact_orders o ON r.order_id = o.order_id\nLEFT JOIN ANALYTICS.dim_customers c ON o.customer_key = c.customer_key\nWHERE p.category_name_english IS NOT NULL\n  [[AND c.state = {{estado}}]]\n  GROUP BY p.category_name_english\n  ORDER BY total_reviews DESC\n  LIMIT 15"
       }
     },
     "visualization_settings": {
@@ -220,11 +220,11 @@
       "database": 2,
       "type": "native",
       "native": {
-        "query": "WITH metrics_hardcode AS (\n    SELECT\n        'Regressao Logistica (Numpy Scratch)' AS modelo,\n        SUM(CASE WHEN true_label = predicted_label_hardcode THEN 1.0 ELSE 0.0 END) / COUNT(*) AS accuracy,\n        SUM(CASE WHEN true_label = 'late' AND predicted_label_hardcode = 'late' THEN 1.0 ELSE 0.0 END) \n            / NULLIF(SUM(CASE WHEN true_label = 'late' THEN 1.0 ELSE 0.0 END), 0) AS recall_late,\n        SUM(CASE WHEN true_label = 'late' AND predicted_label_hardcode = 'late' THEN 1.0 ELSE 0.0 END) \n            / NULLIF(SUM(CASE WHEN predicted_label_hardcode = 'late' THEN 1.0 ELSE 0.0 END), 0) AS precision_late\n    FROM ANALYTICS.mart_ml_results\n    WHERE 1=1\n      [[AND customer_state = {{customer_state}}]]\n),\nmetrics_sklearn AS (\n    SELECT\n        'Regressao Logistica (Scikit-Learn)' AS modelo,\n        SUM(CASE WHEN true_label = predicted_label_sklearn THEN 1.0 ELSE 0.0 END) / COUNT(*) AS accuracy,\n        SUM(CASE WHEN true_label = 'late' AND predicted_label_sklearn = 'late' THEN 1.0 ELSE 0.0 END) \n            / NULLIF(SUM(CASE WHEN true_label = 'late' THEN 1.0 ELSE 0.0 END), 0) AS recall_late,\n        SUM(CASE WHEN true_label = 'late' AND predicted_label_sklearn = 'late' THEN 1.0 ELSE 0.0 END) \n            / NULLIF(SUM(CASE WHEN predicted_label_sklearn = 'late' THEN 1.0 ELSE 0.0 END), 0) AS precision_late\n    FROM ANALYTICS.mart_ml_results\n    WHERE 1=1\n      [[AND customer_state = {{customer_state}}]]\n),\nmetrics_baseline AS (\n    SELECT\n        'Baseline (Majority Class)' AS modelo,\n        SUM(CASE WHEN true_label = 'on_time' THEN 1.0 ELSE 0.0 END) / COUNT(*) AS accuracy,\n        0.0 AS recall_late,\n        0.0 AS precision_late\n    FROM ANALYTICS.mart_ml_results\n    WHERE 1=1\n      [[AND customer_state = {{customer_state}}]]\n),\nconsolidated AS (\n    SELECT * FROM metrics_hardcode\n    UNION ALL\n    SELECT * FROM metrics_sklearn\n    UNION ALL\n    SELECT * FROM metrics_baseline\n)\nSELECT\n    modelo,\n    accuracy * 100 AS acuracia_pct,\n    recall_late * 100 AS recall_atraso_pct,\n    precision_late * 100 AS precisao_atraso_pct,\n    COALESCE((2 * (precision_late * recall_late) / NULLIF(precision_late + recall_late, 0)) * 100, 0) AS f1_atraso_pct\nFROM consolidated",
+        "query": "WITH metrics_hardcode AS (\n    SELECT\n        'Regressao Logistica (Numpy Scratch)' AS modelo,\n        SUM(CASE WHEN true_label = predicted_label_hardcode THEN 1.0 ELSE 0.0 END) / COUNT(*) AS accuracy,\n        SUM(CASE WHEN true_label = 'late' AND predicted_label_hardcode = 'late' THEN 1.0 ELSE 0.0 END) \n            / NULLIF(SUM(CASE WHEN true_label = 'late' THEN 1.0 ELSE 0.0 END), 0) AS recall_late,\n        SUM(CASE WHEN true_label = 'late' AND predicted_label_hardcode = 'late' THEN 1.0 ELSE 0.0 END) \n            / NULLIF(SUM(CASE WHEN predicted_label_hardcode = 'late' THEN 1.0 ELSE 0.0 END), 0) AS precision_late\n    FROM ANALYTICS.mart_ml_results\n    WHERE 1=1\n      [[AND estado = {{estado}}]]\n),\nmetrics_sklearn AS (\n    SELECT\n        'Regressao Logistica (Scikit-Learn)' AS modelo,\n        SUM(CASE WHEN true_label = predicted_label_sklearn THEN 1.0 ELSE 0.0 END) / COUNT(*) AS accuracy,\n        SUM(CASE WHEN true_label = 'late' AND predicted_label_sklearn = 'late' THEN 1.0 ELSE 0.0 END) \n            / NULLIF(SUM(CASE WHEN true_label = 'late' THEN 1.0 ELSE 0.0 END), 0) AS recall_late,\n        SUM(CASE WHEN true_label = 'late' AND predicted_label_sklearn = 'late' THEN 1.0 ELSE 0.0 END) \n            / NULLIF(SUM(CASE WHEN predicted_label_sklearn = 'late' THEN 1.0 ELSE 0.0 END), 0) AS precision_late\n    FROM ANALYTICS.mart_ml_results\n    WHERE 1=1\n      [[AND estado = {{estado}}]]\n),\nmetrics_baseline AS (\n    SELECT\n        'Baseline (Majority Class)' AS modelo,\n        SUM(CASE WHEN true_label = 'on_time' THEN 1.0 ELSE 0.0 END) / COUNT(*) AS accuracy,\n        0.0 AS recall_late,\n        0.0 AS precision_late\n    FROM ANALYTICS.mart_ml_results\n    WHERE 1=1\n      [[AND estado = {{estado}}]]\n),\nconsolidated AS (\n    SELECT * FROM metrics_hardcode\n    UNION ALL\n    SELECT * FROM metrics_sklearn\n    UNION ALL\n    SELECT * FROM metrics_baseline\n)\nSELECT\n    modelo,\n    accuracy * 100 AS acuracia_pct,\n    recall_late * 100 AS recall_atraso_pct,\n    precision_late * 100 AS precisao_atraso_pct,\n    COALESCE((2 * (precision_late * recall_late) / NULLIF(precision_late + recall_late, 0)) * 100, 0) AS f1_atraso_pct\nFROM consolidated",
         "template-tags": {
-          "customer_state": {
-            "id": "customer_state",
-            "name": "customer_state",
+          "estado": {
+            "id": "estado",
+            "name": "estado",
             "display-name": "Customer State",
             "type": "text"
           }
@@ -254,11 +254,11 @@
       "database": 2,
       "type": "native",
       "native": {
-        "query": "SELECT \n    order_id AS id_pedido,\n    customer_state AS estado_cliente,\n    true_label AS status_real,\n    predicted_label_hardcode AS predicao_numpy,\n    predicted_label_sklearn AS predicao_sklearn,\n    predicted_at AS data_previsao\nFROM ANALYTICS.mart_ml_results\nWHERE sklearn_correct = FALSE\n  [[AND customer_state = {{customer_state}}]]\nORDER BY predicted_at DESC\nLIMIT 20",
+        "query": "SELECT \n    order_id AS id_pedido,\n    estado AS estado_cliente,\n    true_label AS status_real,\n    predicted_label_hardcode AS predicao_numpy,\n    predicted_label_sklearn AS predicao_sklearn,\n    predicted_at AS data_previsao\nFROM ANALYTICS.mart_ml_results\nWHERE sklearn_correct = FALSE\n  [[AND estado = {{estado}}]]\nORDER BY predicted_at DESC\nLIMIT 20",
         "template-tags": {
-          "customer_state": {
-            "id": "customer_state",
-            "name": "customer_state",
+          "estado": {
+            "id": "estado",
+            "name": "estado",
             "display-name": "Customer State",
             "type": "text"
           }

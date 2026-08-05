@@ -2,19 +2,26 @@
   create or replace   view PROJETO_OLIST_DB.ANALYTICS.stg_orders
   
    as (
-    with source as (
-    select * from PROJETO_OLIST_DB.RAW.orders
+    -- Camada STAGING de raw.orders
+-- espelha a fonte crua (orders) com padronização mínima.
+-- Regra da aula: no staging fazemos pouca ou nenhuma transformação, só limpeza
+-- leve de nomes/tipos. Nada de regra de negócio aqui.
+
+-- 
+
+WITH source AS (
+    SELECT * FROM PROJETO_OLIST_DB.RAW.orders
 )
 
-select
+SELECT
     order_id,
     customer_id,
     order_status,
-    order_purchase_timestamp,
+    cast(order_purchase_timestamp AS timestamp)      AS order_purchase_timestamp, -- padronizamos apenas o tipo das datas (texto -> timestamp)
     order_approved_at,
     order_delivered_carrier_date,
-    order_delivered_customer_date,
+    cast(order_delivered_customer_date AS timestamp) AS order_delivered_customer_date, -- padronizamos apenas o tipo das datas (texto -> timestamp)
     order_estimated_delivery_date
-from source
+FROM source
   );
 

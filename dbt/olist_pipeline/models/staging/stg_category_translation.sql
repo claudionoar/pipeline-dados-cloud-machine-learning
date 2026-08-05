@@ -1,8 +1,12 @@
-with source as (
-    select * from {{ source('raw', 'category_translation') }}
+-- Camada STAGING de raw.category_translation
+
+-- {{ config(materialized='view') }}
+
+WITH source AS (
+    SELECT * FROM {{ source('raw', 'category_translation') }}
 )
 
-select
+SELECT
     product_category_name,
     product_category_name_english
-from source
+FROM source
