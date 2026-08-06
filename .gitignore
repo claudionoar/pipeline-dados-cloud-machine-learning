@@ -25,11 +25,11 @@ dbt/olist_pipeline/dbt_internal_packages/
 dbt/olist_pipeline/profiles.yml
 
 # Terraform
-terraform/.terraform/
-terraform/terraform.tfstate*
-terraform/terraform.tfvars
-terraform/*.tfplan
-terraform/crash.log
+aws/terraform/.terraform/*
+aws/terraform/terraform.tfstate*
+aws/terraform/terraform.tfvars
+aws/terraform/*.tfplan
+aws/terraform/crash.log
 
 # Airflow
 airflow/logs/

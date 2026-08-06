@@ -17,7 +17,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 BUCKET = os.environ.get("AWS_S3_BUCKET")
 REGION = os.environ.get("AWS_DEFAULT_REGION", "us-east-1")
 
