@@ -53,27 +53,26 @@ with DAG(
     # se alguém disparar o DAG antes do `terraform apply`.               
     check_s3_bucket = BashOperator(
         task_id="check_s3_bucket",
-        bash_command=f"python {PROJECT_DIR}/s3/check_bucket.py"        
+        bash_command=f"python {PROJECT_DIR}/aws/s3/check_bucket.py"        
     )
 
     # Lê os 10 CSVs brutos do Olist (`data/raw/`) e gera as camadas bronze (cópia bruta) e silver (limpeza/tipagem/joins) 
     # localmente, prontas para envio ao S3.
     process_data = BashOperator(
         task_id="process_data",
-        bash_command=f"python {PROJECT_DIR}/s3/processing.py"        
+        bash_command=f"python {PROJECT_DIR}/aws/s3/processing.py"        
     )
 
     # Envia a camada bronze (dados brutos) gerada por `process_data` para o S3
     upload_bronze = BashOperator(
         task_id="upload_bronze_to_s3",
-        bash_command=f"python {PROJECT_DIR}/s3/upload_to_s3.py --layer bronze"
-    
+        bash_command=f"python {PROJECT_DIR}/aws/s3/upload_to_s3.py --layer bronze"
     )
 
     # Envia a camada silver (dados limpos/tratados) gerada por `process_data` para o S3.",
     upload_silver = BashOperator(
         task_id="upload_silver_to_s3",
-        bash_command=f"python {PROJECT_DIR}/s3/upload_to_s3.py --layer silver"        
+        bash_command=f"python {PROJECT_DIR}/aws/s3/upload_to_s3.py --layer silver"        
     )
 
     # "grants" fica de fora por padrão: só é necessário quando a role que carrega os dados é
@@ -137,7 +136,7 @@ with DAG(
     upload_predictions = BashOperator(
         task_id="upload_predictions_to_s3",
         bash_command=(
-            f"python {PROJECT_DIR}/s3/upload_to_s3.py --layer predictions "
+            f"python {PROJECT_DIR}//aws/s3/upload_to_s3.py --layer predictions "
             f"--file {PROJECT_DIR}/machine-learning/output/predictions.csv"
         )
     )

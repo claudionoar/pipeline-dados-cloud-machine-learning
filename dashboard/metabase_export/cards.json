@@ -187,7 +187,7 @@
             "default": null,
             "dimension": [
               "field",
-              73,
+              148,
               null
             ],
             "widget-type": "string/contains",
@@ -196,7 +196,7 @@
             }
           }
         },
-        "query": "SELECT p.category_name_english AS categoria,\nCOUNT(r.review_key) AS total_reviews,\n(SUM(CASE WHEN r.sentiment_label = 'positive' THEN 1 ELSE 0 END) / NULLIF(COUNT(r.review_key), 0)::FLOAT) * 100 AS pct_positivo,\n(SUM(CASE WHEN r.sentiment_label = 'neutral' THEN 1 ELSE 0 END) / NULLIF(COUNT(r.review_key), 0)::FLOAT) * 100 AS pct_neutro,\n(SUM(CASE WHEN r.sentiment_label = 'negative' THEN 1 ELSE 0 END) / NULLIF(COUNT(r.review_key), 0)::FLOAT) * 100 AS pct_negativo\nFROM ANALYTICS.fact_reviews r\nLEFT JOIN (SELECT order_id, product_key FROM ANALYTICS.fact_order_items QUALIFY ROW_NUMBER() OVER (PARTITION BY order_id ORDER BY order_item_id) = 1) pi ON r.order_id = pi.order_id\nLEFT JOIN ANALYTICS.dim_products p ON pi.product_key = p.product_key\nLEFT JOIN ANALYTICS.fact_orders o ON r.order_id = o.order_id\nLEFT JOIN ANALYTICS.dim_customers c ON o.customer_key = c.customer_key\nWHERE p.category_name_english IS NOT NULL\n  [[AND c.state = {{estado}}]]\n  GROUP BY p.category_name_english\n  ORDER BY total_reviews DESC\n  LIMIT 15"
+        "query": "SELECT p.category_name_english AS categoria,\nCOUNT(r.review_key) AS total_reviews,\n(SUM(CASE WHEN r.sentiment_label = 'positivo' THEN 1 ELSE 0 END) / NULLIF(COUNT(r.review_key), 0)::FLOAT) * 100 AS pct_positivo,\n(SUM(CASE WHEN r.sentiment_label = 'neutro' THEN 1 ELSE 0 END) / NULLIF(COUNT(r.review_key), 0)::FLOAT) * 100 AS pct_neutro,\n(SUM(CASE WHEN r.sentiment_label = 'negativo' THEN 1 ELSE 0 END) / NULLIF(COUNT(r.review_key), 0)::FLOAT) * 100 AS pct_negativo\nFROM ANALYTICS.fact_reviews r\nLEFT JOIN (SELECT order_id, product_key FROM ANALYTICS.fact_order_items QUALIFY ROW_NUMBER() OVER (PARTITION BY order_id ORDER BY order_item_id) = 1) pi ON r.order_id = pi.order_id\nLEFT JOIN ANALYTICS.dim_products p ON pi.product_key = p.product_key\nLEFT JOIN ANALYTICS.fact_orders o ON r.order_id = o.order_id\nLEFT JOIN ANALYTICS.dim_customers c ON o.customer_key = c.customer_key\nWHERE p.category_name_english IS NOT NULL\n  [[AND c.estado = {{estado}}]]\n  GROUP BY p.category_name_english\n  ORDER BY total_reviews DESC\n  LIMIT 15"
       }
     },
     "visualization_settings": {
