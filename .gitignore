@@ -32,6 +32,7 @@ logs/
 
 # Terraform
 aws/terraform/.terraform/*
+aws/terraform/.terraform/providers
 aws/terraform/.terraform.lock.hcl
 aws/terraform/terraform.tfstate*
 aws/terraform/terraform.tfvars
