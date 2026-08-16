@@ -38,7 +38,7 @@
   O grão real de `stg_order_reviews`/`fact_reviews` é `review_id + order_id` — os testes dbt e
   a surrogate key (`review_key`) usam essa combinação, não só `review_id`.
 
-## Esquema canônico (camada silver, saída de `s3/processing.py`)
+## Esquema canônico (camada silver, saída de `aws/s3/processing.py`)
 
 Uma tabela por arquivo de origem, com o mesmo grão, apenas tipada (datas parseadas, CEPs como
 string para preservar zeros à esquerda, numéricos coercidos) — sem joins/agregações, que ficam

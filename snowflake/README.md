@@ -9,7 +9,7 @@ a partir do Airflow.
 |---|---|
 | `sql/00_setup_warehouse_db.sql` | Cria warehouse, database `${SNOWFLAKE_DATABASE}` e schemas `RAW`, `ANALYTICS` (usado pelo dbt). |
 | `sql/01_create_stage.sql` | Cria o **stage** externo apontando para `s3://<bucket>/silver/`, usando as credenciais AWS diretamente (ver seção abaixo). |
-| `sql/02_create_raw_tables.sql` | Cria uma tabela `RAW.*` por arquivo do dataset Olist (`CUSTOMERS`, `GEOLOCATION`, `ORDERS`, `ORDER_ITEMS`, `ORDER_PAYMENTS`, `ORDER_REVIEWS`, `PRODUCTS`, `SELLERS`, `CATEGORY_TRANSLATION`) + `ML_PREDICTIONS`, no esquema canônico produzido por `s3/processing.py`. |
+| `sql/02_create_raw_tables.sql` | Cria uma tabela `RAW.*` por arquivo do dataset Olist (`CUSTOMERS`, `GEOLOCATION`, `ORDERS`, `ORDER_ITEMS`, `ORDER_PAYMENTS`, `ORDER_REVIEWS`, `PRODUCTS`, `SELLERS`, `CATEGORY_TRANSLATION`) + `ML_PREDICTIONS`, no esquema canônico produzido por `aws/s3/processing.py`. |
 | `sql/03_copy_into.sql` | `COPY INTO` de cada `silver/<tabela>/*.csv` para a tabela `RAW.*` correspondente. |
 | `sql/05_copy_predictions.sql` | `COPY INTO` das predições de atraso na entrega geradas pelo módulo `machine-learning/` (roda depois do treino). |
 

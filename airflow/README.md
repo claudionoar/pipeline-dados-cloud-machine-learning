@@ -6,7 +6,7 @@ virtualenv isolado em `/home/airflow/dbt_venv` só para o dbt (evita conflito de
 entre `dbt-snowflake` e o `apache-airflow` core).
 
 O `docker-compose.yml` da raiz do projeto monta:
-- todo o repositório em `/opt/airflow/project` (para as tasks chamarem `s3/`, `snowflake/`,
+- todo o repositório em `/opt/airflow/project` (para as tasks chamarem `aws/s3/`, `snowflake/`,
   `dbt/` e `machine-learning/` como scripts comuns, sem duplicar código);
 - `airflow/dags/` como a pasta de DAGs do Airflow.
 

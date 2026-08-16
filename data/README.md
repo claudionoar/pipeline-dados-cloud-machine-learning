@@ -3,7 +3,7 @@
 ```
 data/
 ├── raw/          # 9 CSVs originais do dataset Olist + tradução de categoria (versionado)
-└── processed/    # CSVs tipados/normalizados por s3/processing.py antes do upload ("silver", não versionado)
+└── processed/    # CSVs tipados/normalizados por aws/s3/processing.py antes do upload ("silver", não versionado)
 ```
 
 ## Dataset: Olist Brazilian E-Commerce
@@ -27,7 +27,7 @@ nada do Kaggle:
 
 `data/raw/*.csv` é versionado no git (arquivos já fazem parte do repositório) — diferente do
 projeto anterior (Amazon), não há mais download via Kaggle API nem detecção automática de
-qual CSV é qual: `s3/processing.py` lê cada arquivo pelo nome exato acima.
+qual CSV é qual: `aws/s3/processing.py` lê cada arquivo pelo nome exato acima.
 
 ## Testar o ML sem a base carregada no Snowflake
 

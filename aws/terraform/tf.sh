@@ -4,7 +4,7 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-ENV_FILE="../.env"
+ENV_FILE="../../.env"
 
 if [ ! -f "$ENV_FILE" ]; then
   echo "Erro: $ENV_FILE não encontrado." >&2

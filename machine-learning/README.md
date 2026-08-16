@@ -48,7 +48,7 @@ usa **F1/recall macro**, não só accuracy — um modelo que sempre prevê "on_t
 
 `predictions.csv` guarda, por pedido do conjunto de teste: `order_id`, `true_label`
 (`on_time`/`late`), a predição de cada modelo e `model_version`/`predicted_at`. Esse arquivo é
-subido para `s3://.../silver/ml_predictions/` (`s3/upload_to_s3.py --layer predictions`) e
+subido para `s3://.../silver/ml_predictions/` (`aws/s3/upload_to_s3.py --layer predictions`) e
 carregado em `RAW.ML_PREDICTIONS` (`snowflake/sql/05_copy_predictions.sql`), de onde o dbt
 materializa `mart_ml_results` para o dashboard — fechando o caminho dado bruto → dado tratado
 → predição exigido na seção 5.3 do enunciado.
