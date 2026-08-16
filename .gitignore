@@ -47,3 +47,4 @@ machine-learning/artifacts/*
 Thumbs.db
 .vscode/
 .idea/
+temp/
