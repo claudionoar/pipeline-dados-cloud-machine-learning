@@ -1,4 +1,4 @@
-# terraform/ — Provisionamento do bucket S3 (Infra como código)
+# aws/terraform/ — Provisionamento do bucket S3 (Infra como código)
 
 ## Provisionamento (passo único, antes de subir o `docker-compose up`)
 
@@ -6,7 +6,7 @@ Igual ao setup do Snowflake (`snowflake/README.md`), este é um passo de infraes
 **uma vez**, fora do DAG do Airflow — o pipeline de dados assume que o bucket já existe.
 
 ```bash
-cd terraform
+cd aws/terraform
 cp terraform.tfvars.example terraform.tfvars   # ajuste bucket_name (mesmo valor de AWS_S3_BUCKET no .env)
 
 # usando o wrapper (Linux/macOS/git-bash):
@@ -19,20 +19,20 @@ chmod +x tf.sh
 Ou diretamente com `docker run` (funciona igual no PowerShell, trocando `$(pwd)` por `${PWD}`):
 
 ```bash
-docker run --rm -it -v "$(pwd):/workspace" -w /workspace --env-file ../.env \
+docker run --rm -it -v "$(pwd):/workspace" -w /workspace --env-file ../../.env \
   hashicorp/terraform:1.9 init
 
-docker run --rm -it -v "$(pwd):/workspace" -w /workspace --env-file ../.env \
+docker run --rm -it -v "$(pwd):/workspace" -w /workspace --env-file ../../.env \
   hashicorp/terraform:1.9 apply
 ```
 
-As credenciais AWS vêm do `.env` da raiz (`--env-file ../.env`) via as variáveis padrão do
+As credenciais AWS vêm do `.env` da raiz (`--env-file ../../.env`) via as variáveis padrão do
 provider (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_DEFAULT_REGION`) — nenhuma
 credencial fica no código Terraform.
 
 ## Estado (state)
 
-`terraform.tfstate` é gravado localmente em `terraform/` (bind mount do container para o
+`terraform.tfstate` é gravado localmente em `aws/terraform/` (bind mount do container para o
 host, então persiste entre execuções). Fica fora do controle de versão (`.gitignore`) por
 conter potencialmente metadados sensíveis do bucket. Para uso em equipe, o próximo passo
 natural seria migrar para um backend remoto (ex.: outro bucket S3 + DynamoDB para lock) —
@@ -66,7 +66,7 @@ do container. Causas mais comuns, em ordem de probabilidade:
 Para depurar sem expor os valores, confirme que as variáveis chegam ao container:
 
 ```bash
-docker run --rm --env-file ../.env alpine sh -c 'echo "access_key_len=${#AWS_ACCESS_KEY_ID} secret_len=${#AWS_SECRET_ACCESS_KEY}"'
+docker run --rm --env-file ../../.env alpine sh -c 'echo "access_key_len=${#AWS_ACCESS_KEY_ID} secret_len=${#AWS_SECRET_ACCESS_KEY}"'
 ```
 
 Se os tamanhos aparecerem como `0`, o `.env` não está sendo lido corretamente (passo 1 ou 2

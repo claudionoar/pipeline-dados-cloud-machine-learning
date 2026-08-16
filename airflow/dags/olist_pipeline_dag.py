@@ -5,11 +5,11 @@ Requisito mínimo do enunciado (4.4): "DAG funcional no Airflow" + "pipeline dev
 reproduzir as principais etapas de preparação e transformação dos dados".
 
 Todas as tasks chamam os mesmos scripts que podem ser rodados manualmente (ver READMEs de
-s3/, snowflake/, dbt/ e machine-learning/) - o DAG só orquestra a ordem e as dependências.
+aws/s3/, snowflake/, dbt/ e machine-learning/) - o DAG só orquestra a ordem e as dependências.
 
 Pré-requisito de infraestrutura (rodado uma única vez, fora deste DAG): o bucket S3 é
-provisionado via Terraform em Docker (`terraform/README.md`) e a base Snowflake via
-`snowflake/load_to_snowflake.py --steps setup,stage,tables,grants` (`snowflake/README.md`).
+provisionado via Terraform em Docker (`aws/terraform/README.md`) e a base Snowflake via
+`snowflake/load_to_snowflake.py --steps setup,stage,tables` (`snowflake/README.md`).
 """
 from __future__ import annotations
 
@@ -47,13 +47,12 @@ with DAG(
     dag.doc_md = __doc__
 
     # O bucket em si é provisionado via Terraform (rodado em Docker, fora do DAG - ver
-    # terraform/README.md), como um passo único de infraestrutura. Esta task só falha rápido
-    # e com uma mensagem clara caso alguém dispare o DAG antes do "terraform apply".
-    # Confirma que o bucket S3 (provisionado via Terraform, fora do DAG) existe e está acessível com as credenciais do `.env` — falha rápido com mensagem clara"
-    # se alguém disparar o DAG antes do `terraform apply`.               
+    # aws/terraform/README.md), como um passo único de infraestrutura. Esta task só confirma
+    # que o bucket existe e está acessível com as credenciais do .env, falhando rápido e com
+    # mensagem clara caso alguém dispare o DAG antes do "terraform apply".
     check_s3_bucket = BashOperator(
         task_id="check_s3_bucket",
-        bash_command=f"python {PROJECT_DIR}/aws/s3/check_bucket.py"        
+        bash_command=f"python {PROJECT_DIR}/aws/s3/check_bucket.py"
     )
 
     # Lê os 10 CSVs brutos do Olist (`data/raw/`) e gera as camadas bronze (cópia bruta) e silver (limpeza/tipagem/joins) 
@@ -136,7 +135,7 @@ with DAG(
     upload_predictions = BashOperator(
         task_id="upload_predictions_to_s3",
         bash_command=(
-            f"python {PROJECT_DIR}//aws/s3/upload_to_s3.py --layer predictions "
+            f"python {PROJECT_DIR}/aws/s3/upload_to_s3.py --layer predictions "
             f"--file {PROJECT_DIR}/machine-learning/output/predictions.csv"
         )
     )

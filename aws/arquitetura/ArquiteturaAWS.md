@@ -2,10 +2,12 @@
 
 Esta proposta apresenta uma solução equivalente a 100% em serviços gerenciados da AWS para o pipeline de dados e machine learning do Olist Brazilian E-Commerce.
 
-![Diagrama da Arquitetura Proposta 100% AWS (Conceitual)](aws_architecture_diagram.png)
+Este é o **documento canônico** da proposta 100% AWS (item 4.5 do enunciado): diagrama,
+mapeamento de componentes, fases do fluxo e custos. O template CloudFormation que a
+implementa está em [`aws/cloudformation/template.yaml`](../cloudformation/template.yaml)
+(instruções de deploy em [`aws/cloudformation/README.md`](../cloudformation/README.md)).
 
-![Diagrama da Arquitetura Proposta 100% AWS (Gerado via Python Diagrams)](aws_architecture_diagram_generated.png)
-
+![Diagrama da Arquitetura Proposta 100% AWS](arquitetura_aws.jpeg)
 
 ---
 
@@ -16,7 +18,7 @@ A tabela abaixo descreve a transição dos componentes locais/híbridos atuais p
 | Componente Atual (Híbrido / Local) | Equivalente 100% AWS | Função no Pipeline |
 | :--- | :--- | :--- |
 | **Arquivos CSV locais** (`data/raw/`) | **Amazon S3 (Bronze Bucket)** | Armazenamento de dados brutos (*raw*) |
-| **Script de Ingestão** (`s3/processing.py`) | **AWS Glue Job (PySpark)** | Limpeza, transformação e normalização dos dados brutos |
+| **Script de Ingestão** (`aws/s3/processing.py`) | **AWS Glue Job (PySpark)** | Limpeza, transformação e normalização dos dados brutos |
 | **S3 local/híbrido** (Silver/Gold) | **Amazon S3 (Silver/Gold Buckets)** | Armazenamento dos dados limpos (*Silver*) e prontos para consumo (*Gold*) |
 | **Metadata Catalog** | **AWS Glue Crawler + Data Catalog** | Catálogo de tabelas estruturadas baseadas nos arquivos do S3 |
 | **Snowflake** (SaaS externo) | **Amazon Redshift Serverless** | Data Warehouse analítico para consultas estruturadas |
@@ -41,12 +43,12 @@ flowchart TD
     RedshiftML -->|Consumo de Dados| QuickSight[8. Dashboards no Amazon QuickSight]
     
     %% Orchestration
-    MWAA -. Orquestra todo o fluxo .-> Glue Job
-    MWAA -. Orquestra .-> EC2[dbt no EC2]
+    MWAA[Amazon MWAA] -. Orquestra todo o fluxo .-> GlueJob[AWS Glue Job PySpark]
+    MWAA -. Orquestra .-> EC2[dbt Core no EC2]
     MWAA -. Orquestra .-> SageMaker
-    
+
     %% Monitoring
-    Glue Job -. Logs .-> CloudWatch
+    GlueJob -. Logs .-> CloudWatch[Amazon CloudWatch]
     MWAA -. Logs .-> CloudWatch
     SageMaker -. Logs .-> CloudWatch
     RedshiftRAW -. Logs .-> CloudWatch
@@ -77,7 +79,7 @@ flowchart TD
 
 ## 3. Arquitetura como Código (IaC) e Implantação
 
-A infraestrutura básica para esta arquitetura é definida no template CloudFormation localizado em `cloudformation/template.yaml`.
+A infraestrutura básica para esta arquitetura é definida no template CloudFormation localizado em `aws/cloudformation/template.yaml`.
 
 ### Estrutura do Template CloudFormation:
 - **S3 Bucket**: Criação do Data Lake unificado com as pastas estruturadas.
@@ -97,18 +99,24 @@ A infraestrutura básica para esta arquitetura é definida no template CloudForm
 | Serviço AWS | Modelo de Cobrança | Estimativa de Custo Mensal (Uso Moderado) |
 | :--- | :--- | :--- |
 | **Amazon S3** | Armazenamento por GB/mês + requisições API | < US$ 1.00 (pouco volume de dados brutos) |
-| **AWS Glue** | DPU-hora por job rodando (mínimo 10 min por execução) | ~US$ 10.00 a US$ 15.00 (rodando 1x ao dia) |
+| **AWS Glue** | DPU-hora por job rodando (~US$ 0.44/h com 2 workers G.1X, mínimo 10 min por execução) + ~US$ 0.10 por execução do Crawler | ~US$ 10.00 a US$ 15.00 (rodando 1x ao dia) |
 | **Amazon Redshift Serverless** | RPU-hora (unidades de processamento ativas) | ~US$ 2.88 por hora de processamento ativo |
 | **Amazon SageMaker** | Instância rodando (Notebook) + custo de Job de Treino | ~US$ 5.00 a US$ 10.00 (ml.t3.medium para desenvolvimento) |
 | **Amazon EC2 (dbt Core)** | Instância rodando (t3.micro para execução do dbt CLI) | ~US$ 7.60/mês (se ligada continuamente) ou < US$ 1.00 (se ligada sob demanda) |
 | **Amazon MWAA** (Não implantado) | Custo fixo por hora da instância do Airflow | ~US$ 350.00 (incluindo NAT Gateway na VPC) |
 | **Amazon QuickSight** (Não implantado) | Licenciamento por usuário ativo | ~US$ 12.00 a US$ 24.00 por usuário/mês |
+| **VPC** (criada sempre pelo template) | Sem NAT Gateway — apenas subnets públicas e IGW | US$ 0.00 (sem custo fixo) |
+
+> Valores de referência pública da AWS (us-east-1), podem variar por região e ao longo do
+> tempo. Esta é a **tabela canônica de custos do projeto** — `aws/cloudformation/README.md`
+> aponta para cá em vez de duplicá-la. Com `EnableRedshift`, `EnableSageMaker` e `EnableEC2`
+> em `false` (o padrão), o stack não gera custo fixo.
 
 ---
 
 ## 5. Próximos Passos Recomendados
 
 Para migrar a execução atual local/híbrida para a nuvem AWS de forma produtiva:
-1. **Refatorar Ingestão**: Converter o script pandas `s3/processing.py` para rodar como PySpark no Glue.
+1. **Refatorar Ingestão**: Converter o script pandas `aws/s3/processing.py` para rodar como PySpark no Glue.
 2. **Setup do Adaptador dbt no EC2**: Provisionar a instância EC2, instalar o Python/dbt-redshift e configurar o perfil do dbt (`profiles.yml`) para usar o driver `redshift` ao invés de `snowflake`.
 3. **Segurança Avançada**: Configurar VPC Endpoints para garantir que o tráfego entre S3, Glue e Redshift Serverless não transite pela internet pública.

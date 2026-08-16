@@ -16,7 +16,7 @@ medallion na documentação:
 | **Silver**| `staging` (+ `intermediate`) | Dado limpo, tipado, padronizado e com lógica reaproveitável. |
 | **Gold**  | `marts`                 | Modelo dimensional e agregados prontos para consumo (BI/ML). |
 
-Ver o diagrama completo em [`docs/camadas_medallion.md`](docs/camadas_medallion.md).
+Ver o diagrama de equivalência no fim desta página ([`camadas_medallion.png`](camadas_medallion.png)).
 
 > **Nota sobre `intermediate`:** a camada silver do medallion é mais ampla que o `staging`
 > do dbt. Regras de negócio reaproveitáveis (joins, deduplicações, agregações intermediárias)

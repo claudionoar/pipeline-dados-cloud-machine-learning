@@ -1,4 +1,4 @@
-# s3/ — Armazenamento em nuvem (AWS S3)
+# aws/s3/ — Armazenamento em nuvem (AWS S3)
 
 Organização do bucket S3 (arquitetura em camadas / medalhão):
 
@@ -28,7 +28,7 @@ por data (chave estável, sobrescrita a cada execução) — ver o comentário e
 ## Criação do bucket
 
 O bucket (e as camadas bronze/silver/gold) não é mais criado por um script Python: é
-provisionado via **Terraform, rodado em Docker** — ver `terraform/README.md`. É um passo de
+provisionado via **Terraform, rodado em Docker** — ver `aws/terraform/README.md`. É um passo de
 infraestrutura rodado **uma vez**, antes de subir o `docker-compose up` (igual ao setup do
 Snowflake). O DAG do Airflow assume que o bucket já existe.
 
@@ -43,7 +43,7 @@ Snowflake). O DAG do Airflow assume que o bucket já existe.
 ## Uso local
 
 ```bash
-cd s3
+cd aws/s3
 pip install -r requirements.txt
 
 python processing.py
