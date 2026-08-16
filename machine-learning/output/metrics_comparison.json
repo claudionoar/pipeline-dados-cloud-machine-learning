@@ -1,0 +1,20 @@
+{
+  "baseline_majority": {
+    "accuracy": 0.9189808784452665,
+    "precision_macro": 0.4594904392226333,
+    "recall_macro": 0.5,
+    "f1_macro": 0.4788900654340094
+  },
+  "logreg_hardcode": {
+    "accuracy": 0.6117855468139426,
+    "precision_macro": 0.5397177107480275,
+    "recall_macro": 0.6292815424458081,
+    "f1_macro": 0.4778723010763965
+  },
+  "logreg_sklearn": {
+    "accuracy": 0.6112124211952275,
+    "precision_macro": 0.5400408667448814,
+    "recall_macro": 0.6304356933236446,
+    "f1_macro": 0.4778788637786959
+  }
+}

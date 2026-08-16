@@ -52,7 +52,7 @@ airflow/plugins/__pycache__/
 airflow-logs/
 
 # Saídas de ML
-machine-learning/output/*
+#machine-learning/output/*
 !machine-learning/output/.gitkeep
 machine-learning/artifacts/*
 !machine-learning/artifacts/.gitkeep
