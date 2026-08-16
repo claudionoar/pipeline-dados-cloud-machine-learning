@@ -31,13 +31,18 @@ logs/
 .user.yml
 
 # Terraform
-aws/terraform/.terraform/*
-aws/terraform/.terraform/providers**
+aws/terraform/.terraform/
 aws/terraform/.terraform.lock.hcl
-aws/terraform/terraform.tfstate*
-aws/terraform/terraform.tfvars
-aws/terraform/*.tfplan
+aws/terraform/*.tfstate
+aws/terraform/*.tfstate.*
 aws/terraform/crash.log
+aws/terraform/*.tfvars
+aws/terraform/override.tf
+aws/terraform/override.tf.json
+aws/terraform/*_override.tf
+aws/terraform/*_override.tf.json
+aws/terraform/.terraformrc
+aws/terraform/terraform.rc
 
 # Airflow
 airflow/logs/
