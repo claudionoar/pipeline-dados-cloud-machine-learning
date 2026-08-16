@@ -24,8 +24,15 @@ dbt/olist_pipeline/logs/**
 dbt/olist_pipeline/dbt_internal_packages/
 dbt/olist_pipeline/profiles.yml
 
+dbt_packages/
+dbt_modules/
+target/
+logs/
+.user.yml
+
 # Terraform
 aws/terraform/.terraform/*
+aws/terraform/.terraform/.terraform*
 aws/terraform/terraform.tfstate*
 aws/terraform/terraform.tfvars
 aws/terraform/*.tfplan
