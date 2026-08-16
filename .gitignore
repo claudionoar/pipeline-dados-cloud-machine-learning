@@ -24,12 +24,27 @@ dbt/olist_pipeline/logs/**
 dbt/olist_pipeline/dbt_internal_packages/
 dbt/olist_pipeline/profiles.yml
 
+dbt_packages/
+dbt_modules/
+target/
+logs/
+.user.yml
+
 # Terraform
-aws/terraform/.terraform/*
-aws/terraform/terraform.tfstate*
-aws/terraform/terraform.tfvars
-aws/terraform/*.tfplan
+aws/terraform/.terraform/
+aws/terraform/.terraform.lock.hcl
+aws/terraform/*.tfstate
+aws/terraform/*.tfstate.*
 aws/terraform/crash.log
+aws/terraform/*.tfvars
+aws/terraform/override.tf
+aws/terraform/override.tf.json
+aws/terraform/*_override.tf
+aws/terraform/*_override.tf.json
+aws/terraform/.terraformrc
+aws/terraform/terraform.rc
+aws/terraform/.terraform/providers/registry.terraform.io/hashicorp/aws/5.100.0/linux_amd64/LICENSE.txt
+aws/terraform/.terraform\providers/registry.terraform.io/hashicorp/aws/5.100.0/linux_amd64/terraform-provider-aws_v5.100.0_x5
 
 # Airflow
 airflow/logs/
